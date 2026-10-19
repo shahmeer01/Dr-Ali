@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="1000" viewBox="0 0 800 1000" fill="none">
+  <rect width="800" height="1000" fill="#D5E3D5"/>
+  <rect x="120" y="280" width="560" height="440" rx="8" fill="#F7F5EF" stroke="#E5E2D9" stroke-width="2"/>
+  <circle cx="400" cy="460" r="72" fill="#183D32" opacity="0.12"/>
+  <path d="M400 410c-18 0-32 16-32 36 0 22 18 40 32 54 14-14 32-32 32-54 0-20-14-36-32-36z" fill="#183D32" opacity="0.35"/>
+  <rect x="280" y="600" width="240" height="14" rx="4" fill="#183D32" opacity="0.15"/>
+  <rect x="320" y="630" width="160" height="10" rx="4" fill="#183D32" opacity="0.1"/>
+  <text x="400" y="880" text-anchor="middle" font-family="system-ui, sans-serif" font-size="20" fill="#626B64" opacity="0.7">Product image placeholder</text>
+</svg>

@@ -1,0 +1,176 @@
+@import "tailwindcss";
+
+:root {
+  /* Brand color tokens — authoritative palette */
+  --brand-forest: #183d32;
+  --brand-ivory: #f7f5ef;
+  --brand-sage: #d5e3d5;
+  --brand-amber: #c58a52;
+  --brand-charcoal: #262b28;
+  --brand-surface: #ffffff;
+  --brand-border: #e5e2d9;
+  --brand-muted: #626b64;
+
+  /* Semantic aliases */
+  --background: var(--brand-ivory);
+  --foreground: var(--brand-charcoal);
+  --surface: var(--brand-surface);
+  --muted-text: var(--brand-muted);
+  --subtle-border: var(--brand-border);
+
+  /* Radius scale (8–14px controls/cards; editorial media stays square) */
+  --radius-control: 10px;
+  --radius-card: 12px;
+
+  /* Restrained elevation */
+  --shadow-card: 0 1px 2px rgb(38 43 40 / 0.04), 0 8px 24px rgb(38 43 40 / 0.06);
+  --shadow-card-hover: 0 2px 4px rgb(38 43 40 / 0.05), 0 12px 32px rgb(38 43 40 / 0.09);
+
+  /* Motion defaults */
+  --ease-out-soft: cubic-bezier(0.22, 1, 0.36, 1);
+  --duration-fast: 180ms;
+  --duration-base: 280ms;
+}
+
+@theme inline {
+  --color-forest: var(--brand-forest);
+  --color-ivory: var(--brand-ivory);
+  --color-sage: var(--brand-sage);
+  --color-amber: var(--brand-amber);
+  --color-charcoal: var(--brand-charcoal);
+  --color-surface: var(--brand-surface);
+  --color-border-subtle: var(--brand-border);
+  --color-muted: var(--brand-muted);
+
+  --font-sans: var(--font-dm-sans), ui-sans-serif, system-ui, -apple-system,
+    "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-display: var(--font-playfair-display), ui-serif, Georgia,
+    "Times New Roman", serif;
+
+  --container-site: 80rem; /* 1280px */
+
+  --radius-control: var(--radius-control);
+  --radius-card: var(--radius-card);
+
+  --shadow-card: var(--shadow-card);
+  --shadow-card-hover: var(--shadow-card-hover);
+
+  --ease-out-soft: var(--ease-out-soft);
+}
+
+@layer base {
+  *,
+  ::before,
+  ::after {
+    border-color: var(--brand-border);
+  }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+    scroll-behavior: smooth;
+  }
+
+  body {
+    background: var(--brand-ivory);
+    color: var(--brand-charcoal);
+    font-family: var(--font-sans);
+    font-size: 17px;
+    line-height: 1.6;
+    font-weight: 400;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  ::selection {
+    background: var(--brand-sage);
+    color: var(--brand-forest);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--brand-forest);
+    outline-offset: 3px;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    color: var(--brand-charcoal);
+    font-weight: 500;
+    letter-spacing: -0.01em;
+  }
+
+  img,
+  video {
+    max-width: 100%;
+    height: auto;
+  }
+}
+
+@layer components {
+  .text-display {
+    font-family: var(--font-display);
+    font-weight: 500;
+    letter-spacing: -0.02em;
+    line-height: 1.08;
+  }
+
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  .text-pretty {
+    text-wrap: pretty;
+  }
+}
+
+@layer utilities {
+  .section-y {
+    padding-block: 3.5rem; /* 56px mobile */
+  }
+
+  @media (min-width: 768px) {
+    .section-y {
+      padding-block: 5.5rem; /* 88px */
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .section-y {
+      padding-block: 7.5rem; /* 120px */
+    }
+  }
+
+  .section-y-tight {
+    padding-block: 3rem; /* 48px */
+  }
+
+  @media (min-width: 768px) {
+    .section-y-tight {
+      padding-block: 4.5rem; /* 72px */
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .section-y-tight {
+      padding-block: 5.5rem; /* 88px */
+    }
+  }
+}
+
+/* Reduced motion: disable smooth scroll and collapse animation durations */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  ::before,
+  ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

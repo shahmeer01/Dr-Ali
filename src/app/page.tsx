@@ -2,6 +2,8 @@ import { Section } from "@/components/ui/Section";
 import { Button } from "@/components/ui/Button";
 import { WhatsAppBand } from "@/components/ui/WhatsAppBand";
 import { Reveal, MediaReveal } from "@/components/motion/Reveal";
+import { HeroSequence } from "@/components/motion/HeroSequence";
+import { MaskedWords } from "@/components/motion/MaskedWords";
 import { ProductCard } from "@/components/commerce/ProductCard";
 import { products } from "@/data/products";
 import { waLink, generalEnquiryMessage } from "@/lib/whatsapp";
@@ -96,58 +98,65 @@ export default function Home() {
           fitted to the viewport below the header (72px + 1px rule), leaving a
           consistent 48px peek of the sage section below; Section supplies the
           Container. Height is intentionally uncapped so the peek stays 48px
-          rather than ballooning on tall viewports. */}
+          rather than ballooning on tall viewports. HeroSequence drives a single
+          cinematic entrance timeline via data attributes. */}
       <Section
         surface="ivory"
         spacing="none"
         className="pt-10 md:pt-16 lg:pt-0"
       >
-        <div className="grid items-center gap-8 lg:h-[calc(100svh_-_73px_-_48px)] lg:min-h-[600px] lg:grid-cols-[minmax(0,6fr)_minmax(0,5fr)] lg:gap-14">
-          <div>
-            <Reveal immediate delay={0}>
-              <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-amber sm:text-[12px]">
-                Veterinary Care · Lahore, Pakistan
-              </p>
-            </Reveal>
-            <Reveal immediate delay={0.07}>
+        <HeroSequence>
+          <div className="grid items-center gap-8 lg:h-[calc(100svh_-_73px_-_48px)] lg:min-h-[600px] lg:grid-cols-[minmax(0,6fr)_minmax(0,5fr)] lg:gap-14">
+            <div>
+              <div data-hero-eyebrow>
+                <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-amber sm:text-[12px]">
+                  Veterinary Care · Lahore, Pakistan
+                </p>
+              </div>
               <h1 className="text-display text-balance mt-4 text-[34px] leading-[1.08] tracking-[-0.015em] text-charcoal sm:text-[42px] lg:text-[50px] xl:text-[56px]">
-                Every animal deserves a healthier life.
+                <MaskedWords text="Every animal deserves a healthier life." />
               </h1>
-            </Reveal>
-            <Reveal immediate delay={0.14}>
-              <p className="text-pretty mt-6 max-w-[31rem] text-[16px] leading-[1.65] text-muted sm:text-[17px]">
+              <p
+                data-hero-body
+                className="text-pretty mt-6 max-w-[31rem] text-[16px] leading-[1.65] text-muted sm:text-[17px]"
+              >
                 Veterinary care for companion animals, livestock, large animals
                 and wildlife, with a focus on animal health, responsible
                 treatment and practical guidance.
               </p>
-            </Reveal>
-            <Reveal immediate delay={0.21}>
               <div className="mt-8 flex flex-wrap items-center gap-3">
-                <Button href="#animal-care" size="lg" variant="primary">
-                  Explore Animal Care
-                </Button>
-                <Button href="/contact" size="lg" variant="secondary">
-                  Contact Dr. Ali
-                </Button>
+                <span data-hero-cta>
+                  <Button href="#animal-care" size="lg" variant="primary">
+                    Explore Animal Care
+                  </Button>
+                </span>
+                <span data-hero-cta>
+                  <Button href="/contact" size="lg" variant="secondary">
+                    Contact Dr. Ali
+                  </Button>
+                </span>
               </div>
-            </Reveal>
-          </div>
+            </div>
 
-          <div>
-            <MediaReveal delay={0.14}>
-              <div className="relative aspect-[4/5] w-full overflow-hidden rounded-[20px] bg-sage shadow-[0_24px_60px_-32px_rgba(24,61,50,0.4)] sm:aspect-[5/4] lg:aspect-[4/5] lg:max-h-[calc(100svh_-_200px)]">
-                <Image
-                  src="/images/hero-vet-dog.png"
-                  alt="Veterinarian examining a dog on an examination table"
-                  fill
-                  priority
-                  sizes="(max-width: 1023px) 100vw, 44vw"
-                  className="object-cover object-[50%_30%]"
-                />
+            <div>
+              <div
+                data-hero-media
+                className="relative aspect-[4/5] w-full overflow-hidden rounded-[20px] bg-sage shadow-[0_24px_60px_-32px_rgba(24,61,50,0.4)] sm:aspect-[5/4] lg:aspect-[4/5] lg:max-h-[calc(100svh_-_200px)]"
+              >
+                <div data-hero-scale className="absolute inset-0">
+                  <Image
+                    src="/images/hero-vet-dog.png"
+                    alt="Veterinarian examining a dog on an examination table"
+                    fill
+                    priority
+                    sizes="(max-width: 1023px) 100vw, 44vw"
+                    className="object-cover object-[50%_30%]"
+                  />
+                </div>
               </div>
-            </MediaReveal>
+            </div>
           </div>
-        </div>
+        </HeroSequence>
       </Section>
 
       {/* Animal care — four consistent category cards on the sage band.
@@ -168,7 +177,7 @@ export default function Home() {
             <Reveal key={card.id} staggerIndex={i}>
               <article
                 id={card.id}
-                className="group flex h-full scroll-mt-24 flex-col overflow-hidden rounded-card border border-border-subtle bg-white transition-[box-shadow,border-color] duration-[180ms] ease-[cubic-bezier(0.22,1,0.36,1)] hover:border-forest/25 hover:shadow-card-hover focus-within:border-forest/25 focus-within:shadow-card-hover"
+                className="group flex h-full scroll-mt-24 flex-col overflow-hidden rounded-card border border-border-subtle bg-white transition-[box-shadow,border-color,transform] duration-[180ms] ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-0.5 hover:border-forest/25 hover:shadow-card-hover focus-within:border-forest/25 focus-within:shadow-card-hover"
               >
                 <div className="relative aspect-[4/3] overflow-hidden bg-sage">
                   <Image
@@ -220,7 +229,7 @@ export default function Home() {
         <div className="mt-10 grid gap-5 sm:grid-cols-2 md:mt-12 lg:grid-cols-3">
           {services.map((service, i) => (
             <Reveal key={service.title} staggerIndex={i}>
-              <article className="flex h-full flex-col rounded-card border border-border-subtle bg-white p-6 transition-[box-shadow,border-color] duration-[180ms] ease-[cubic-bezier(0.22,1,0.36,1)] hover:border-forest/25 hover:shadow-card-hover sm:p-7">
+              <article className="flex h-full flex-col rounded-card border border-border-subtle bg-white p-6 transition-[box-shadow,border-color,transform] duration-[180ms] ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-0.5 hover:border-forest/25 hover:shadow-card-hover sm:p-7">
                 <service.Icon
                   className="h-6 w-6 text-forest"
                   aria-hidden="true"
@@ -235,7 +244,7 @@ export default function Home() {
             </Reveal>
           ))}
           <Reveal staggerIndex={services.length}>
-            <article className="flex h-full flex-col rounded-card bg-forest p-6 text-white sm:p-7">
+            <article className="flex h-full flex-col rounded-card bg-forest p-6 text-white transition-[box-shadow,transform] duration-[180ms] ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-0.5 hover:shadow-card-hover sm:p-7">
               <h3 className="mt-10 font-display text-[21px] font-medium leading-[1.25] text-ivory sm:min-h-[53px]">
                 Talk to Dr. Ali
               </h3>
@@ -262,10 +271,12 @@ export default function Home() {
         </div>
       </Section>
 
-      {/* About preview — real portrait with confirmed professional details */}
+      {/* About preview — real portrait with confirmed professional details.
+          Coordinated directional reveals: portrait from the left, copy from
+          the right. */}
       <Section surface="white" spacing="tight">
         <div className="grid items-center gap-10 lg:grid-cols-12 lg:gap-14">
-          <Reveal className="lg:col-span-6">
+          <Reveal direction="left" className="lg:col-span-6">
             <MediaReveal>
               <div className="relative aspect-[4/5] w-full overflow-hidden rounded-[20px] bg-sage shadow-[0_24px_60px_-32px_rgba(24,61,50,0.4)] sm:max-w-[440px] lg:max-w-none">
                 <Image
@@ -278,7 +289,7 @@ export default function Home() {
               </div>
             </MediaReveal>
           </Reveal>
-          <Reveal delay={0.08} className="lg:col-span-6">
+          <Reveal delay={0.08} direction="right" className="lg:col-span-6">
             <p className="text-[12px] font-semibold uppercase tracking-[0.14em] text-amber">
               Meet the veterinarian
             </p>

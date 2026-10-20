@@ -10,11 +10,13 @@ import {
   Snail,
   Stethoscope,
 } from "lucide-react";
-import { PageHero } from "@/components/ui/PageHero";
-import { Section } from "@/components/ui/Section";
 import { Container } from "@/components/ui/Container";
+import { Section } from "@/components/ui/Section";
 import { Button } from "@/components/ui/Button";
 import { Reveal, MediaReveal } from "@/components/motion/Reveal";
+import { HeroSequence } from "@/components/motion/HeroSequence";
+import { MaskedWords } from "@/components/motion/MaskedWords";
+import { ScrollParallax } from "@/components/motion/ScrollParallax";
 import { WhatsAppIcon } from "@/components/ui/icons";
 import { siteConfig } from "@/config/site";
 import { waLink } from "@/lib/whatsapp";
@@ -71,27 +73,71 @@ const services = [
 export default function WildlifeExoticPage() {
   return (
     <>
-      {/* Hero */}
-      <PageHero
-        eyebrow="Wildlife & Exotic Animals"
-        title="Compassionate care for wildlife and exotic animals."
-        titleClassName="text-[32px] sm:text-[40px] lg:text-[40px]"
-        description="Every species has unique healthcare needs. Explore veterinary care and consultation for wildlife and exotic animals, with an approach focused on animal welfare and responsible treatment."
-        imageSrc="/images/wildlife.png"
-        imageAlt="Lions resting in a wooded wildlife enclosure"
-        imageAspect="aspect-[4/5] sm:aspect-[5/4] xl:aspect-[4/3]"
-        paddingClassName="pb-14 pt-10 md:pb-20 md:pt-16 lg:pb-6 lg:pt-6"
-        actions={
-          <>
-            <Button href="/contact" size="lg" variant="primary">
-              Contact Dr. Ali
-            </Button>
-            <Button href="#care" size="lg" variant="secondary">
-              Explore Care
-            </Button>
-          </>
-        }
-      />
+      {/* Page-local hero — keeps the shared PageHero untouched for other
+          pages. HeroSequence drives a cinematic entrance; the wildlife
+          image gets a clip reveal, scale settle, subtle desktop parallax,
+          and a restrained hover zoom. */}
+      <section className="bg-ivory pb-14 pt-10 md:pb-20 md:pt-16 lg:pb-6 lg:pt-6">
+        <Container>
+          <HeroSequence>
+            <div className="grid items-center gap-10 lg:grid-cols-12 lg:gap-14">
+              <div className="lg:col-span-6 xl:col-span-5">
+                <div data-hero-eyebrow>
+                  <p className="text-[12px] font-semibold uppercase tracking-[0.14em] text-amber">
+                    Wildlife &amp; Exotic Animals
+                  </p>
+                </div>
+                <h1 className="mt-4 text-display text-balance text-[32px] text-charcoal sm:text-[40px] lg:text-[40px]">
+                  <MaskedWords text="Compassionate care for wildlife and exotic animals." />
+                </h1>
+                <p
+                  data-hero-body
+                  className="mt-5 max-w-md text-pretty text-[17px] leading-relaxed text-muted md:text-[18px]"
+                >
+                  Every species has unique healthcare needs. Explore veterinary
+                  care and consultation for wildlife and exotic animals, with
+                  an approach focused on animal welfare and responsible
+                  treatment.
+                </p>
+                <div className="mt-8 flex flex-wrap items-center gap-3">
+                  <span data-hero-cta>
+                    <Button href="/contact" size="lg" variant="primary">
+                      Contact Dr. Ali
+                    </Button>
+                  </span>
+                  <span data-hero-cta>
+                    <Button href="#care" size="lg" variant="secondary">
+                      Explore Care
+                    </Button>
+                  </span>
+                </div>
+              </div>
+
+              <div className="lg:col-span-6 lg:col-start-7 xl:col-span-7">
+                <div data-hero-media className="group">
+                  <div className="relative aspect-[4/5] w-full overflow-hidden rounded-[20px] bg-sage shadow-[0_24px_60px_-32px_rgba(24,61,50,0.4)] sm:aspect-[5/4] xl:aspect-[4/3]">
+                    <div data-hero-scale className="absolute inset-0">
+                      <ScrollParallax
+                        className="absolute inset-x-0 -top-[6%] -bottom-[6%]"
+                        distance={24}
+                      >
+                        <Image
+                          src="/images/wildlife.png"
+                          alt="Lions resting in a wooded wildlife enclosure"
+                          fill
+                          priority
+                          sizes="(max-width: 1023px) 100vw, 48vw"
+                          className="object-cover transition-transform duration-[600ms] ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:scale-[1.03]"
+                        />
+                      </ScrollParallax>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </HeroSequence>
+        </Container>
+      </section>
 
       {/* Animal care groups */}
       <Section
@@ -113,7 +159,7 @@ export default function WildlifeExoticPage() {
         <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {careGroups.map((group, i) => (
             <Reveal key={group.title} staggerIndex={i}>
-              <article className="flex h-full flex-col rounded-card border border-border-subtle bg-white p-6 transition-[box-shadow] duration-[280ms] hover:shadow-card">
+              <article className="flex h-full flex-col rounded-card border border-border-subtle bg-white p-6 transition-[box-shadow,border-color,transform] duration-[180ms] ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-0.5 hover:border-forest/25 hover:shadow-card-hover sm:p-7">
                 <group.icon
                   className="h-6 w-6 text-forest"
                   aria-hidden="true"
@@ -145,7 +191,7 @@ export default function WildlifeExoticPage() {
         <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
           {services.map((service, i) => (
             <Reveal key={service.title} staggerIndex={i}>
-              <article className="flex h-full flex-col rounded-card border border-border-subtle bg-white p-6 transition-[box-shadow] duration-[280ms] hover:shadow-card">
+              <article className="flex h-full flex-col rounded-card border border-border-subtle bg-white p-6 transition-[box-shadow,border-color,transform] duration-[180ms] ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-0.5 hover:border-forest/25 hover:shadow-card-hover sm:p-7">
                 <service.icon
                   className="h-6 w-6 text-forest"
                   aria-hidden="true"
@@ -162,10 +208,11 @@ export default function WildlifeExoticPage() {
         </div>
       </Section>
 
-      {/* Animal welfare information */}
+      {/* Animal welfare — coordinated directional reveals: heading from the
+          left, responsible-care copy from the right */}
       <Section surface="sage" spacing="tight">
         <div className="grid gap-10 lg:grid-cols-12 lg:gap-16">
-          <Reveal className="lg:col-span-5">
+          <Reveal direction="left" className="lg:col-span-5">
             <p className="text-[12px] font-semibold uppercase tracking-[0.14em] text-amber">
               Animal welfare
             </p>
@@ -173,7 +220,11 @@ export default function WildlifeExoticPage() {
               Wildlife care, planned responsibly
             </h2>
           </Reveal>
-          <Reveal delay={0.08} className="lg:col-span-6 lg:col-start-7">
+          <Reveal
+            delay={0.08}
+            direction="right"
+            className="lg:col-span-6 lg:col-start-7"
+          >
             <div className="space-y-4 text-[16px] leading-relaxed text-muted md:text-[17px]">
               <p>
                 Wildlife and exotic animals often need appropriate facilities,
@@ -191,10 +242,11 @@ export default function WildlifeExoticPage() {
         </div>
       </Section>
 
-      {/* About the veterinarian */}
+      {/* About the veterinarian — coordinated directional reveals: portrait
+          from the left, bio from the right */}
       <Section surface="white" spacing="tight">
         <div className="grid items-center gap-10 lg:grid-cols-12 lg:gap-14">
-          <Reveal className="lg:col-span-5">
+          <Reveal direction="left" className="lg:col-span-5">
             <MediaReveal>
               <div className="relative aspect-[4/5] w-full overflow-hidden rounded-[20px] bg-sage shadow-[0_24px_60px_-32px_rgba(24,61,50,0.4)] sm:max-w-[400px] lg:max-w-none">
                 <Image
@@ -207,7 +259,7 @@ export default function WildlifeExoticPage() {
               </div>
             </MediaReveal>
           </Reveal>
-          <Reveal delay={0.08} className="lg:col-span-6 lg:col-start-7">
+          <Reveal delay={0.08} direction="right" className="lg:col-span-6 lg:col-start-7">
             <p className="text-[12px] font-semibold uppercase tracking-[0.14em] text-amber">
               About the veterinarian
             </p>

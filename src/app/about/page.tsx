@@ -5,6 +5,9 @@ import { Container } from "@/components/ui/Container";
 import { Section } from "@/components/ui/Section";
 import { Button } from "@/components/ui/Button";
 import { Reveal, MediaReveal } from "@/components/motion/Reveal";
+import { HeroSequence } from "@/components/motion/HeroSequence";
+import { MaskedWords } from "@/components/motion/MaskedWords";
+import { ScrollParallax } from "@/components/motion/ScrollParallax";
 import { WhatsAppBand } from "@/components/ui/WhatsAppBand";
 import { siteConfig } from "@/config/site";
 import { waLink } from "@/lib/whatsapp";
@@ -36,64 +39,77 @@ const values = [
 export default function AboutPage() {
   return (
     <>
-      {/* Page-local hero — keeps the shared PageHero untouched for other pages */}
+      {/* Page-local hero — HeroSequence drives a cinematic personal-brand
+          entrance; the farm image gets a clip reveal, scale settle, subtle
+          desktop parallax, and a restrained hover zoom. */}
       <section className="bg-ivory pb-14 pt-10 md:pb-20 md:pt-16 lg:flex lg:h-[calc(100svh_-_73px)] lg:max-h-[900px] lg:min-h-[560px] lg:flex-col lg:justify-center lg:pb-0 lg:pt-0">
         <Container>
-          <div className="grid items-center gap-10 lg:grid-cols-12 lg:gap-14">
-            <div className="lg:col-span-6">
-              <Reveal immediate delay={0}>
-                <p className="text-[12px] font-semibold uppercase tracking-[0.14em] text-amber">
-                  About the practice
-                </p>
-              </Reveal>
-              <Reveal immediate delay={0.06}>
+          <HeroSequence>
+            <div className="grid items-center gap-10 lg:grid-cols-12 lg:gap-14">
+              <div className="lg:col-span-6">
+                <div data-hero-eyebrow>
+                  <p className="text-[12px] font-semibold uppercase tracking-[0.14em] text-amber">
+                    About the practice
+                  </p>
+                </div>
                 <h1 className="mt-4 text-display text-balance text-[36px] text-charcoal sm:text-[46px] lg:text-[60px]">
-                  {siteConfig.name}
+                  <MaskedWords text={siteConfig.name} />
                 </h1>
-              </Reveal>
-              <Reveal immediate delay={0.14}>
-                <p className="mt-5 max-w-md text-pretty text-[17px] leading-relaxed text-muted md:text-[18px]">
+                <p
+                  data-hero-body
+                  className="mt-5 max-w-md text-pretty text-[17px] leading-relaxed text-muted md:text-[18px]"
+                >
                   Veterinary surgeon in Lahore, caring for companion animals
                   and livestock with careful examinations, plain explanations,
                   and practical guidance.
                 </p>
-              </Reveal>
-              <Reveal immediate delay={0.22}>
                 <div className="mt-8 flex flex-wrap items-center gap-3">
-                  <Button href="/contact" size="lg" variant="primary">
-                    Get in touch
-                  </Button>
-                  <Button href="#approach" size="lg" variant="secondary">
-                    How the practice works
-                  </Button>
+                  <span data-hero-cta>
+                    <Button href="/contact" size="lg" variant="primary">
+                      Get in touch
+                    </Button>
+                  </span>
+                  <span data-hero-cta>
+                    <Button href="#approach" size="lg" variant="secondary">
+                      How the practice works
+                    </Button>
+                  </span>
                 </div>
-              </Reveal>
-            </div>
+              </div>
 
-            <div className="lg:col-span-6">
-              <div className="lg:ml-auto lg:max-w-[calc((100svh_-_73px)*0.8)]">
-                <MediaReveal delay={0.12}>
-                  <div className="relative aspect-[4/5] w-full overflow-hidden rounded-[20px] bg-sage shadow-[0_24px_60px_-32px_rgba(24,61,50,0.4)] lg:aspect-[4/5]">
-                    <Image
-                      src="/images/stethoscope-desk.png"
-                      alt="Veterinarian examining a goat at a livestock farm"
-                      fill
-                      priority
-                      sizes="(max-width: 1023px) 100vw, 48vw"
-                      className="object-cover"
-                    />
+              <div className="lg:col-span-6">
+                <div className="lg:ml-auto lg:max-w-[calc((100svh_-_73px)*0.8)]">
+                  <div data-hero-media className="group">
+                    <div className="relative aspect-[4/5] w-full overflow-hidden rounded-[20px] bg-sage shadow-[0_24px_60px_-32px_rgba(24,61,50,0.4)] lg:aspect-[4/5]">
+                      <div data-hero-scale className="absolute inset-0">
+                        <ScrollParallax
+                          className="absolute inset-x-0 -top-[6%] -bottom-[6%]"
+                          distance={24}
+                        >
+                          <Image
+                            src="/images/stethoscope-desk.png"
+                            alt="Veterinarian examining a goat at a livestock farm"
+                            fill
+                            priority
+                            sizes="(max-width: 1023px) 100vw, 48vw"
+                            className="object-cover transition-transform duration-[600ms] ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:scale-[1.03]"
+                          />
+                        </ScrollParallax>
+                      </div>
+                    </div>
                   </div>
-                </MediaReveal>
+                </div>
               </div>
             </div>
-          </div>
+          </HeroSequence>
         </Container>
       </section>
 
-      {/* Bio */}
+      {/* Bio — coordinated directional reveals: heading from the left,
+          background copy from the right */}
       <Section surface="white" spacing="tight">
         <div className="grid gap-10 lg:grid-cols-12 lg:gap-16 lg:items-center">
-          <Reveal className="lg:col-span-5">
+          <Reveal direction="left" className="lg:col-span-5">
             <p className="text-[12px] font-semibold uppercase tracking-[0.14em] text-amber">
               Professional background
             </p>
@@ -101,7 +117,11 @@ export default function AboutPage() {
               Veterinary care with a personal standard
             </h2>
           </Reveal>
-          <Reveal delay={0.08} className="lg:col-span-6 lg:col-start-7">
+          <Reveal
+            delay={0.08}
+            direction="right"
+            className="lg:col-span-6 lg:col-start-7"
+          >
             <div className="max-w-[560px] space-y-5 text-[16px] leading-relaxed text-muted md:text-[17px]">
               <p>
                 {siteConfig.name} is a veterinary surgeon based in{" "}
@@ -150,10 +170,11 @@ export default function AboutPage() {
         </div>
       </Section>
 
-      {/* Meet the veterinarian — portrait + confirmed professional details */}
+      {/* Meet the veterinarian — coordinated directional reveals: portrait
+          from the left, professional details from the right */}
       <Section surface="white" spacing="tight">
         <div className="grid items-center gap-10 lg:grid-cols-12 lg:gap-14">
-          <Reveal className="lg:col-span-6">
+          <Reveal direction="left" className="lg:col-span-6">
             <MediaReveal>
               <div className="relative aspect-[4/5] w-full overflow-hidden rounded-[20px] bg-sage shadow-[0_24px_60px_-32px_rgba(24,61,50,0.4)] sm:max-w-[440px] lg:max-w-none">
                 <Image
@@ -166,7 +187,7 @@ export default function AboutPage() {
               </div>
             </MediaReveal>
           </Reveal>
-          <Reveal delay={0.08} className="lg:col-span-6 lg:col-start-7">
+          <Reveal delay={0.08} direction="right" className="lg:col-span-6 lg:col-start-7">
             <p className="text-[12px] font-semibold uppercase tracking-[0.14em] text-amber">
               Meet the veterinarian
             </p>

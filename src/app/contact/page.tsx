@@ -4,6 +4,8 @@ import { Section } from "@/components/ui/Section";
 import { Container } from "@/components/ui/Container";
 import { Button } from "@/components/ui/Button";
 import { Reveal } from "@/components/motion/Reveal";
+import { HeroSequence } from "@/components/motion/HeroSequence";
+import { MaskedWords } from "@/components/motion/MaskedWords";
 import { ContactForm } from "@/components/contact/ContactForm";
 import { siteConfig } from "@/config/site";
 
@@ -16,28 +18,32 @@ export const metadata: Metadata = {
 export default function ContactPage() {
   return (
     <>
+      {/* Compact hero — HeroSequence coordinates a calm entrance without
+          forcing full-viewport height; the form stays immediately reachable */}
       <div className="bg-ivory">
         <Container>
           <div className="pb-8 pt-8 md:pt-10">
-            <Reveal immediate delay={0}>
+            <HeroSequence>
               <h1 className="text-display text-balance text-[36px] text-charcoal sm:text-[46px] lg:text-[54px]">
-                Get in touch
+                <MaskedWords text="Get in touch" />
               </h1>
-            </Reveal>
-            <Reveal immediate delay={0.06}>
-              <p className="mt-4 max-w-xl text-pretty text-[17px] leading-relaxed text-muted">
+              <p
+                data-hero-body
+                className="mt-4 max-w-xl text-pretty text-[17px] leading-relaxed text-muted"
+              >
                 Call or message the practice for appointments, livestock
                 enquiries, and product questions. Replies come during practice
                 hours.
               </p>
-            </Reveal>
+            </HeroSequence>
           </div>
         </Container>
       </div>
 
       <Section surface="white" spacing="tight">
         <div className="grid gap-10 lg:grid-cols-12 lg:gap-14">
-          {/* Call card + form */}
+          {/* Call card + form — coordinated fade-up; the form arrives just
+              after the call card so contact details are never delayed */}
           <div className="lg:col-span-7">
             <Reveal>
               <article className="group flex flex-col gap-4 rounded-card border border-border-subtle bg-white p-6 transition-[box-shadow,border-color,transform] duration-[180ms] ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-0.5 hover:border-forest/25 hover:shadow-card-hover focus-within:-translate-y-0.5 focus-within:border-forest/25 focus-within:shadow-card-hover sm:flex-row sm:items-center sm:gap-5">
@@ -69,15 +75,19 @@ export default function ContactPage() {
             </Reveal>
           </div>
 
-          {/* Practical info */}
+          {/* Practical info — heading, then its rows stagger in with a
+              short, restrained entrance (no wrapping reveal, so the rows
+              don't compound opacity against a parent fade) */}
           <div className="lg:col-span-5 lg:sticky lg:top-24 lg:self-start">
-            <Reveal delay={0.12}>
-              <aside className="rounded-card border border-border-subtle bg-ivory p-6 md:p-8">
+            <aside className="rounded-card border border-border-subtle bg-ivory p-6 md:p-8">
+              <Reveal>
                 <h2 className="font-display text-[22px] font-medium leading-[1.25] tracking-[-0.01em] text-charcoal">
                   Practice information
                 </h2>
+              </Reveal>
 
-                <div className="mt-6 space-y-6">
+              <div className="mt-6 space-y-6">
+                <Reveal staggerIndex={0}>
                   <div className="flex items-start gap-3">
                     <MapPin
                       className="mt-0.5 h-5 w-5 shrink-0 text-forest"
@@ -96,7 +106,9 @@ export default function ContactPage() {
                       </p>
                     </div>
                   </div>
+                </Reveal>
 
+                <Reveal staggerIndex={1}>
                   <div className="flex items-start gap-3">
                     <Clock
                       className="mt-0.5 h-5 w-5 shrink-0 text-forest"
@@ -112,7 +124,9 @@ export default function ContactPage() {
                       </p>
                     </div>
                   </div>
+                </Reveal>
 
+                <Reveal staggerIndex={2}>
                   <div className="flex items-start gap-3">
                     <Phone
                       className="mt-0.5 h-5 w-5 shrink-0 text-forest"
@@ -130,24 +144,24 @@ export default function ContactPage() {
                       </a>
                     </div>
                   </div>
-                </div>
+                </Reveal>
+              </div>
 
-                <div className="mt-8 border-t border-border-subtle pt-6">
-                  <p className="text-[13px] leading-relaxed text-muted">
-                    For emergencies, please call{" "}
-                    <a
-                      href={siteConfig.phoneHref}
-                      className="font-medium text-forest underline-offset-4 transition-colors duration-[180ms] hover:text-[#1f4f41] hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-forest"
-                    >
-                      {siteConfig.phoneDisplay}
-                    </a>{" "}
-                    directly. WhatsApp messages are not monitored
-                    continuously, so please do not rely on WhatsApp for
-                    urgent matters.
-                  </p>
-                </div>
-              </aside>
-            </Reveal>
+              <Reveal delay={0.08} className="mt-8 border-t border-border-subtle pt-6">
+                <p className="text-[13px] leading-relaxed text-muted">
+                  For emergencies, please call{" "}
+                  <a
+                    href={siteConfig.phoneHref}
+                    className="font-medium text-forest underline-offset-4 transition-colors duration-[180ms] hover:text-[#1f4f41] hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-forest"
+                  >
+                    {siteConfig.phoneDisplay}
+                  </a>{" "}
+                  directly. WhatsApp messages are not monitored
+                  continuously, so please do not rely on WhatsApp for
+                  urgent matters.
+                </p>
+              </Reveal>
+            </aside>
           </div>
         </div>
       </Section>

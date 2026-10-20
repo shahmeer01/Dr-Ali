@@ -49,9 +49,10 @@ export function Button({
 }: ButtonProps) {
   const classes = cn(
     "inline-flex items-center justify-center whitespace-nowrap rounded-control font-medium tracking-[0.01em]",
-    "transition-[background-color,border-color,color,box-shadow] duration-[180ms] ease-[cubic-bezier(0.22,1,0.36,1)]",
+    "transition-[background-color,border-color,color,box-shadow,transform] duration-[180ms] ease-[cubic-bezier(0.22,1,0.36,1)]",
+    "hover:-translate-y-px active:translate-y-0",
     "focus-visible:outline-2 focus-visible:outline-offset-3",
-    "disabled:pointer-events-none disabled:opacity-50",
+    "disabled:pointer-events-none disabled:opacity-50 disabled:hover:translate-y-0",
     variantStyles[variant],
     sizeStyles[size],
     className,

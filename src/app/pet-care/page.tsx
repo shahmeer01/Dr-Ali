@@ -12,6 +12,9 @@ import { Section } from "@/components/ui/Section";
 import { Button } from "@/components/ui/Button";
 import { WhatsAppIcon } from "@/components/ui/icons";
 import { Reveal, MediaReveal } from "@/components/motion/Reveal";
+import { HeroSequence } from "@/components/motion/HeroSequence";
+import { MaskedWords } from "@/components/motion/MaskedWords";
+import { ScrollParallax } from "@/components/motion/ScrollParallax";
 import { WhatsAppBand } from "@/components/ui/WhatsAppBand";
 import { waLink } from "@/lib/whatsapp";
 
@@ -58,90 +61,100 @@ const trustPoints = [
 export default function PetCarePage() {
   return (
     <>
-      {/* Hero */}
+      {/* Hero — cinematic entrance via HeroSequence */}
       <section className="bg-ivory py-8 md:py-10 lg:flex lg:h-[calc(100svh_-_73px)] lg:min-h-[560px] lg:max-h-[900px] lg:flex-col lg:justify-center lg:py-0">
         <Container>
-          <div className="grid items-center gap-8 sm:gap-10 lg:grid-cols-12 lg:gap-14">
-            <div className="lg:col-span-6">
-              <Reveal immediate delay={0}>
-                <p className="text-[12px] font-semibold uppercase tracking-[0.14em] text-amber">
-                  Pet care
-                </p>
-              </Reveal>
-              <Reveal immediate delay={0.06}>
+          <HeroSequence>
+            <div className="grid items-center gap-8 sm:gap-10 lg:grid-cols-12 lg:gap-14">
+              <div className="lg:col-span-6">
+                <div data-hero-eyebrow>
+                  <p className="text-[12px] font-semibold uppercase tracking-[0.14em] text-amber">
+                    Pet care
+                  </p>
+                </div>
                 <h1 className="text-display text-balance mt-4 text-[34px] text-charcoal sm:text-[42px] xl:text-[54px]">
-                  Gentle care. Healthier, happier pets.
+                  <MaskedWords text="Gentle care. Healthier, happier pets." />
                 </h1>
-              </Reveal>
-              <Reveal immediate delay={0.14}>
-                <p className="mt-5 max-w-xl text-pretty text-[17px] leading-relaxed text-muted md:text-[18px]">
+                <p
+                  data-hero-body
+                  className="mt-5 max-w-xl text-pretty text-[17px] leading-relaxed text-muted md:text-[18px]"
+                >
                   From preventive care and routine vaccinations to common
                   health concerns, get thoughtful veterinary guidance for
                   your dog or cat in Lahore.
                 </p>
-              </Reveal>
-              <Reveal immediate delay={0.22}>
                 <div className="mt-8 flex flex-wrap items-center gap-3">
-                  <Button
-                    href={waLink(
-                      "Hello Dr. Ali Ahmad, I would like to book a pet care consultation.",
-                    )}
-                    size="lg"
-                    variant="primary"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    <WhatsAppIcon className="h-4 w-4" />
-                    Book on WhatsApp
-                  </Button>
-                  <Button href="#services" size="lg" variant="secondary">
-                    Explore services
-                  </Button>
+                  <span data-hero-cta>
+                    <Button
+                      href={waLink(
+                        "Hello Dr. Ali Ahmad, I would like to book a pet care consultation.",
+                      )}
+                      size="lg"
+                      variant="primary"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      <WhatsAppIcon className="h-4 w-4" />
+                      Book on WhatsApp
+                    </Button>
+                  </span>
+                  <span data-hero-cta>
+                    <Button href="#services" size="lg" variant="secondary">
+                      Explore services
+                    </Button>
+                  </span>
                 </div>
-              </Reveal>
-              <Reveal immediate delay={0.3}>
-                <ul className="mt-6 flex flex-wrap items-center gap-x-3 gap-y-1.5 text-[13px] font-medium leading-5 tracking-[0.01em] text-muted">
-                  {trustPoints.map((point, i) => (
-                    <li key={point} className="flex items-center gap-3">
-                      {i > 0 ? (
-                        <span
-                          className="h-1 w-1 shrink-0 rounded-full bg-amber/70"
-                          aria-hidden="true"
-                        />
-                      ) : null}
-                      {point}
-                    </li>
-                  ))}
-                </ul>
-              </Reveal>
-            </div>
+                <div data-hero-extra>
+                  <ul className="mt-6 flex flex-wrap items-center gap-x-3 gap-y-1.5 text-[13px] font-medium leading-5 tracking-[0.01em] text-muted">
+                    {trustPoints.map((point, i) => (
+                      <li key={point} className="flex items-center gap-3">
+                        {i > 0 ? (
+                          <span
+                            className="h-1 w-1 shrink-0 rounded-full bg-amber/70"
+                            aria-hidden="true"
+                          />
+                        ) : null}
+                        {point}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
 
-            <div className="lg:col-span-6 lg:col-start-7 xl:col-span-5 xl:col-start-8">
-              <MediaReveal delay={0.12}>
-                <div className="relative aspect-[4/5] w-full overflow-hidden rounded-[20px] bg-sage shadow-[0_24px_60px_-32px_rgba(24,61,50,0.4)] sm:aspect-[5/4] lg:aspect-[4/5] lg:ml-auto lg:max-w-[calc((100svh_-_89px)*0.8)]">
-                  <Image
-                    src="/images/hero-vet-dog.png"
-                    alt="Veterinarian examining a dog on an examination table"
-                    fill
-                    priority
-                    sizes="(max-width: 1023px) 100vw, (max-width: 1279px) 44vw, 34vw"
-                    className="object-cover"
-                  />
+              <div className="lg:col-span-6 lg:col-start-7 xl:col-span-5 xl:col-start-8">
+                <div data-hero-media className="group">
+                  <div className="relative aspect-[4/5] w-full overflow-hidden rounded-[20px] bg-sage shadow-[0_24px_60px_-32px_rgba(24,61,50,0.4)] sm:aspect-[5/4] lg:aspect-[4/5] lg:ml-auto lg:max-w-[calc((100svh_-_89px)*0.8)]">
+                    <div data-hero-scale className="absolute inset-0">
+                      <ScrollParallax
+                        className="absolute inset-x-0 -top-[6%] -bottom-[6%]"
+                        distance={24}
+                      >
+                        <Image
+                          src="/images/hero-vet-dog.png"
+                          alt="Veterinarian examining a dog on an examination table"
+                          fill
+                          priority
+                          sizes="(max-width: 1023px) 100vw, (max-width: 1279px) 44vw, 34vw"
+                          className="object-cover transition-transform duration-[600ms] ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:scale-[1.03]"
+                        />
+                      </ScrollParallax>
+                    </div>
+                  </div>
                 </div>
-              </MediaReveal>
+              </div>
             </div>
-          </div>
+          </HeroSequence>
         </Container>
       </section>
 
-      {/* Introduction */}
+      {/* Introduction — coordinated directional scroll reveals */}
       <Section
         surface="sage"
         spacing="tight"
         className="border-y border-forest/15"
       >
         <div className="grid gap-10 lg:grid-cols-12 lg:items-center lg:gap-16">
-          <Reveal immediate delay={0.3} className="lg:col-span-5">
+          <Reveal direction="left" className="lg:col-span-5">
             <p className="text-[12px] font-semibold uppercase tracking-[0.14em] text-amber">
               Pet healthcare
             </p>
@@ -149,7 +162,11 @@ export default function PetCarePage() {
               Prevention first, treatment when it matters
             </h2>
           </Reveal>
-          <Reveal immediate delay={0.38} className="lg:col-span-6 lg:col-start-7">
+          <Reveal
+            delay={0.08}
+            direction="right"
+            className="lg:col-span-6 lg:col-start-7"
+          >
             <div className="space-y-4 text-[16px] leading-relaxed text-charcoal/75 md:text-[17px]">
               <p>
                 Good pet healthcare starts with noticing change early. Regular
@@ -203,10 +220,11 @@ export default function PetCarePage() {
         </div>
       </Section>
 
-      {/* Editorial split: grooming + nutrition detail */}
+      {/* Editorial split: grooming + nutrition detail — coordinated
+          directional reveals: image from the left, copy from the right */}
       <Section surface="ivory" spacing="default" className="border-b border-forest/15">
         <div className="grid items-center gap-10 sm:gap-12 lg:grid-cols-12 lg:gap-16">
-          <Reveal className="lg:col-span-6">
+          <Reveal direction="left" className="lg:col-span-6">
             <MediaReveal>
               <div className="relative aspect-[5/4] w-full overflow-hidden bg-sage">
                 <Image
@@ -219,7 +237,7 @@ export default function PetCarePage() {
               </div>
             </MediaReveal>
           </Reveal>
-          <Reveal delay={0.08} className="lg:col-span-5 lg:col-start-8">
+          <Reveal delay={0.08} direction="right" className="lg:col-span-5 lg:col-start-8">
             <p className="text-[12px] font-semibold uppercase tracking-[0.14em] text-amber">
               What to expect
             </p>

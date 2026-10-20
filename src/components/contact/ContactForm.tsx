@@ -32,7 +32,7 @@ const fieldClass = (invalid?: boolean) =>
   [
     "mt-2 h-11 w-full rounded-control border bg-white px-3.5 text-base text-charcoal",
     "placeholder:text-muted transition-[border-color,box-shadow] duration-[180ms] ease-[cubic-bezier(0.22,1,0.36,1)]",
-    "focus:border-forest focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-forest",
+    "focus:border-forest focus:shadow-[0_0_0_3px_rgba(24,61,50,0.12)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-forest",
     invalid ? "border-[#a03d2e]" : "border-border-subtle",
   ].join(" ");
 

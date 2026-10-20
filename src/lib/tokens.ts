@@ -32,9 +32,11 @@ export const radius = {
 
 export const motionTokens = {
   /** Typical entrance duration range from the design spec */
-  duration: { fast: 0.5, base: 0.7, media: 0.9 },
+  duration: { fast: 0.5, base: 0.7, media: 0.9, hero: 1.2 },
   /** Vertical rise for section entrances (spec: 16–24px) */
   riseY: 20,
   stagger: 0.08,
   ease: "power2.out",
+  /** Premium deceleration for coordinated timelines */
+  easeOut: "power3.out",
 } as const;

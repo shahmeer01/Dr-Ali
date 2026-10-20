@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import {
   Stethoscope,
   HeartPulse,
@@ -10,10 +11,13 @@ import {
   MapPin,
   MessageCircle,
 } from "lucide-react";
-import { PageHero } from "@/components/ui/PageHero";
+import { Container } from "@/components/ui/Container";
 import { Section } from "@/components/ui/Section";
 import { Button } from "@/components/ui/Button";
 import { Reveal } from "@/components/motion/Reveal";
+import { HeroSequence } from "@/components/motion/HeroSequence";
+import { MaskedWords } from "@/components/motion/MaskedWords";
+import { ScrollParallax } from "@/components/motion/ScrollParallax";
 import { WhatsAppBand } from "@/components/ui/WhatsAppBand";
 import { waLink } from "@/lib/whatsapp";
 
@@ -80,32 +84,78 @@ const livestockServices = [
 export default function ServicesPage() {
   return (
     <>
-      <PageHero
-        eyebrow="Services"
-        title="Veterinary services overview"
-        description="Companion animal care and livestock healthcare — explore the full service pages for each."
-        imageSrc="/images/vet-dog-exam.jpg"
-        imageAlt="Veterinarian examining a dog"
-        actions={
-          <>
-            <Button
-              href={waLink(
-                "Hello Dr. Ali Ahmad, I would like to ask about your services.",
-              )}
-              size="lg"
-              variant="primary"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              <MessageCircle className="h-4 w-4" aria-hidden="true" />
-              Ask about a service
-            </Button>
-            <Button href="/pet-care" size="lg" variant="secondary">
-              Pet care services
-            </Button>
-          </>
-        }
-      />
+      {/* Page-local hero — keeps the shared PageHero untouched for other
+          pages. HeroSequence drives a cinematic entrance; the exam image
+          gets a clip reveal, scale settle, subtle desktop parallax, and a
+          restrained hover zoom. */}
+      <section className="bg-ivory pb-14 pt-10 md:pb-20 md:pt-16 lg:pb-24 lg:pt-20">
+        <Container>
+          <HeroSequence>
+            <div className="grid items-center gap-10 lg:grid-cols-12 lg:gap-14">
+              <div className="lg:col-span-6 xl:col-span-5">
+                <div data-hero-eyebrow>
+                  <p className="text-[12px] font-semibold uppercase tracking-[0.14em] text-amber">
+                    Services
+                  </p>
+                </div>
+                <h1 className="mt-4 text-display text-balance text-[36px] text-charcoal sm:text-[46px] lg:text-[60px]">
+                  <MaskedWords text="Veterinary services overview" />
+                </h1>
+                <p
+                  data-hero-body
+                  className="mt-5 max-w-md text-pretty text-[17px] leading-relaxed text-muted md:text-[18px]"
+                >
+                  Companion animal care and livestock healthcare — explore the
+                  full service pages for each.
+                </p>
+                <div className="mt-8 flex flex-wrap items-center gap-3">
+                  <span data-hero-cta>
+                    <Button
+                      href={waLink(
+                        "Hello Dr. Ali Ahmad, I would like to ask about your services.",
+                      )}
+                      size="lg"
+                      variant="primary"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      <MessageCircle className="h-4 w-4" aria-hidden="true" />
+                      Ask about a service
+                    </Button>
+                  </span>
+                  <span data-hero-cta>
+                    <Button href="/pet-care" size="lg" variant="secondary">
+                      Pet care services
+                    </Button>
+                  </span>
+                </div>
+              </div>
+
+              <div className="lg:col-span-6 lg:col-start-7 xl:col-span-7">
+                <div data-hero-media className="group">
+                  <div className="relative aspect-[4/5] w-full overflow-hidden rounded-[20px] bg-sage shadow-[0_24px_60px_-32px_rgba(24,61,50,0.4)] sm:aspect-[5/4] lg:aspect-[4/5]">
+                    <div data-hero-scale className="absolute inset-0">
+                      <ScrollParallax
+                        className="absolute inset-x-0 -top-[6%] -bottom-[6%]"
+                        distance={24}
+                      >
+                        <Image
+                          src="/images/vet-dog-exam.jpg"
+                          alt="Veterinarian examining a dog"
+                          fill
+                          priority
+                          sizes="(max-width: 1023px) 100vw, 48vw"
+                          className="object-cover transition-transform duration-[600ms] ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:scale-[1.03]"
+                        />
+                      </ScrollParallax>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </HeroSequence>
+        </Container>
+      </section>
 
       <Section surface="white" spacing="default">
         <Reveal>
@@ -122,8 +172,11 @@ export default function ServicesPage() {
         <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
           {petServices.map((service, i) => (
             <Reveal key={service.title} staggerIndex={i}>
-              <article className="flex h-full flex-col rounded-card border border-border-subtle bg-white p-6">
-                <service.icon className="h-6 w-6 text-forest" aria-hidden="true" />
+              <article className="group flex h-full flex-col rounded-card border border-border-subtle bg-white p-6 transition-[box-shadow,border-color,transform] duration-[180ms] ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-0.5 hover:border-forest/25 hover:shadow-card-hover focus-within:-translate-y-0.5 focus-within:border-forest/25 focus-within:shadow-card-hover sm:p-7">
+                <service.icon
+                  className="h-6 w-6 text-forest transition-transform duration-[280ms] ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:-translate-y-[2px] group-focus-within:-translate-y-[2px]"
+                  aria-hidden="true"
+                />
                 <h3 className="mt-4 font-display text-[22px] font-medium text-forest">
                   {service.title}
                 </h3>
@@ -160,8 +213,11 @@ export default function ServicesPage() {
         <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
           {livestockServices.map((service, i) => (
             <Reveal key={service.title} staggerIndex={i}>
-              <article className="flex h-full flex-col rounded-card border border-border-subtle bg-white p-6">
-                <service.icon className="h-6 w-6 text-forest" aria-hidden="true" />
+              <article className="group flex h-full flex-col rounded-card border border-border-subtle bg-white p-6 transition-[box-shadow,border-color,transform] duration-[180ms] ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-0.5 hover:border-forest/25 hover:shadow-card-hover focus-within:-translate-y-0.5 focus-within:border-forest/25 focus-within:shadow-card-hover sm:p-7">
+                <service.icon
+                  className="h-6 w-6 text-forest transition-transform duration-[280ms] ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:-translate-y-[2px] group-focus-within:-translate-y-[2px]"
+                  aria-hidden="true"
+                />
                 <h3 className="mt-4 font-display text-[22px] font-medium text-forest">
                   {service.title}
                 </h3>

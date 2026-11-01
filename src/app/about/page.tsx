@@ -198,8 +198,8 @@ export default function AboutPage() {
               Doctor of Veterinary Medicine (DVM)
             </p>
             <p className="mt-4 text-[16px] leading-relaxed text-muted">
-              Dr. Ali Ahmad is a veterinary practitioner in Lahore with 3
-              years of experience in animal healthcare. He provides
+              Dr. Ali Ahmad is an experienced veterinary doctor based in
+              Lahore. He provides
               veterinary home visits and farm consultations, with a focus on
               surgical procedures, medication, and compassionate care for
               every animal.
@@ -208,7 +208,7 @@ export default function AboutPage() {
               aria-label="Credentials"
               className="mt-5 flex flex-wrap items-center gap-2"
             >
-              {["DVM", "RVMP", "3 years of veterinary experience"].map(
+              {["DVM", "RVMP", "Experienced Veterinarian"].map(
                 (credential) => (
                   <li
                     key={credential}

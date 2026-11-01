@@ -1,10 +1,21 @@
 /**
- * Centralized, typed product catalog.
+ * Product catalogue — the single typed data source for every product listing
+ * on the site (category routes, the /products index, the homepage picks, and
+ * product detail pages).
  *
- * IMPORTANT: All entries below are DEVELOPMENT DEMO DATA.
- * Names, brands, prices, and availability are placeholders until
- * real inventory is supplied. Nothing here should be presented
- * as genuine stock.
+ * Integration boundary
+ * --------------------
+ * `inventory` below is the only place product records enter the application.
+ * It is intentionally empty: no verified inventory (names, brands, pack
+ * sizes, prices, stock status, photography) has been supplied yet, so
+ * nothing is published as a listing. The UI renders a safe "products are
+ * being updated" state instead.
+ *
+ * When a backend, CMS, ERP, or supplier feed becomes available, resolve it
+ * here (server-side fetch / SDK call) and map the response onto the
+ * `Product` type — the exported accessors stay unchanged and every consumer
+ * (search, filtering, sorting, counts) keeps reading the same dataset.
+ * Components must never hold their own hardcoded product records.
  */
 
 export type ProductCategorySlug =
@@ -14,27 +25,33 @@ export type ProductCategorySlug =
   | "accessories"
   | "healthcare";
 
+/**
+ * Stock status — only set once the practice has verified it.
+ * Absent means "not stated", which is never rendered as a claim.
+ */
 export type ProductAvailability = "in-stock" | "on-request" | "unavailable";
 
 export type Product = {
   slug: string;
   name: string;
-  /** Demo brand label — replace with verified brand names. */
-  brand: string;
+  /** Verified brand name. Omitted when unconfirmed. */
+  brand?: string;
   category: ProductCategorySlug;
+  /** Short factual summary of the listing. */
   description: string;
-  /** Detailed copy for the product page. */
-  details: string;
-  /** Display price string, e.g. "PKR 1,200". Demo values only. */
-  price: string;
-  /** Numeric price for sorting (demo values). */
-  priceValue: number;
+  /** Longer factual copy for the product detail page. */
+  details?: string;
+  /** Verified display price, e.g. "PKR 1,200". Omit until supplied — never faked. */
+  price?: string;
+  /** Numeric price used for sorting; only meaningful when `price` exists. */
+  priceValue?: number;
+  /** Verified pack size, e.g. "3 kg". Omit when unconfirmed. */
   size?: string;
-  availability: ProductAvailability;
-  image: string;
-  imageAlt: string;
-  /** Always true for current entries — flag for demo inventory. */
-  demo: true;
+  /** Verified availability. Omit when unconfirmed. */
+  availability?: ProductAvailability;
+  /** Product photography. Omitted entries fall back to a neutral panel. */
+  image?: string;
+  imageAlt?: string;
 };
 
 export type ProductCategory = {
@@ -94,368 +111,52 @@ export const productCategories: ProductCategory[] = [
   },
 ];
 
-export const products: Product[] = [
-  // —— Pet Food ——
-  {
-    slug: "adult-dog-dry-food-3kg",
-    name: "Adult Dog Dry Food — 3 kg",
-    brand: "Demo Brand",
-    category: "pet-food",
-    description:
-      "Complete dry food formulation for adult dogs as part of a balanced diet.",
-    details:
-      "Development demo listing. Replace with verified packaging details, guaranteed analysis, and feeding guidelines once real inventory is confirmed.",
-    price: "PKR 0,000",
-    priceValue: 0,
-    size: "3 kg",
-    availability: "on-request",
-    image: "/images/dog-food-bowl.jpg",
-    imageAlt: "Dry dog food served in a ceramic bowl",
-    demo: true,
-  },
-  {
-    slug: "puppy-dry-food-2kg",
-    name: "Puppy Dry Food — 2 kg",
-    brand: "Demo Brand",
-    category: "pet-food",
-    description:
-      "Smaller-kibble dry food concept for growing puppies, offered as a demo listing.",
-    details:
-      "Development demo listing. Product name, composition, and price await confirmation from actual inventory.",
-    price: "PKR 0,000",
-    priceValue: 0,
-    size: "2 kg",
-    availability: "on-request",
-    image: "/images/kibble.jpg",
-    imageAlt: "Close-up of dry pet food kibble",
-    demo: true,
-  },
-  {
-    slug: "cat-dry-food-1-5kg",
-    name: "Cat Dry Food — 1.5 kg",
-    brand: "Demo Brand",
-    category: "pet-food",
-    description:
-      "Demo catalog entry for everyday cat dry food in a resealable pack.",
-    details:
-      "Development demo listing. Replace with the verified product, weight, and price before launch.",
-    price: "PKR 0,000",
-    priceValue: 0,
-    size: "1.5 kg",
-    availability: "unavailable",
-    image: "/images/dog-bowl-white.jpg",
-    imageAlt: "White pet food bowl on a light surface",
-    demo: true,
-  },
-  {
-    slug: "dental-chews-assorted",
-    name: "Dental Chews — Assorted",
-    brand: "Demo Brand",
-    category: "pet-food",
-    description:
-      "Placeholder listing for dental chew treats in assorted sizes.",
-    details:
-      "Development demo listing. Verify brand, pack size, and availability before publishing.",
-    price: "PKR 0,000",
-    priceValue: 0,
-    availability: "on-request",
-    image: "/images/dog-eating.jpg",
-    imageAlt: "Brown and white dog eating from a bowl",
-    demo: true,
-  },
+/**
+ * Verified inventory feed. Empty until real product data is connected —
+ * see the module docblock for how to plug a source in.
+ */
+const inventory: readonly Product[] = [];
 
-  // —— Animal Feed ——
-  {
-    slug: "dairy-cattle-ration-50kg",
-    name: "Dairy Cattle Ration — 50 kg",
-    brand: "Demo Brand",
-    category: "animal-feed",
-    description:
-      "Demo entry for a balanced dairy cattle ration sack for farm use.",
-    details:
-      "Development demo listing. Feed composition, batch details, and price to be confirmed with the supplier.",
-    price: "PKR 0,000",
-    priceValue: 0,
-    size: "50 kg",
-    availability: "on-request",
-    image: "/images/cattle-feed.jpg",
-    imageAlt: "Cattle eating feed from a pen",
-    demo: true,
+/**
+ * Read-only accessors over `inventory`. This object is the integration
+ * boundary: swapping the static list for an API/CMS response only touches
+ * this module.
+ */
+export const productSource = {
+  /** All verified listings, in curated order. */
+  list(): readonly Product[] {
+    return inventory;
   },
-  {
-    slug: "calf-starter-feed-25kg",
-    name: "Calf Starter Feed — 25 kg",
-    brand: "Demo Brand",
-    category: "animal-feed",
-    description:
-      "Placeholder listing for calf starter feed for young stock on farm.",
-    details:
-      "Development demo listing. Replace with verified feed tag information before launch.",
-    price: "PKR 0,000",
-    priceValue: 0,
-    size: "25 kg",
-    availability: "on-request",
-    image: "/images/cows-barn.jpg",
-    imageAlt: "Cows eating together inside a barn",
-    demo: true,
+  bySlug(slug: string): Product | undefined {
+    return inventory.find((product) => product.slug === slug);
   },
-  {
-    slug: "mineral-mix-supplement-10kg",
-    name: "Mineral Mix Supplement — 10 kg",
-    brand: "Demo Brand",
-    category: "animal-feed",
-    description:
-      "Demo listing for a trace-mineral mix used as part of herd nutrition planning.",
-    details:
-      "Development demo listing. Mineral profile and feeding rate require supplier confirmation.",
-    price: "PKR 0,000",
-    priceValue: 0,
-    size: "10 kg",
-    availability: "unavailable",
-    image: "/images/livestock-hero.jpg",
-    imageAlt: "Herd of buffalo resting on green pasture",
-    demo: true,
+  byCategory(slug: ProductCategorySlug): Product[] {
+    return inventory.filter((product) => product.category === slug);
   },
-  {
-    slug: "poultry-layer-feed-20kg",
-    name: "Poultry Layer Feed — 20 kg",
-    brand: "Demo Brand",
-    category: "animal-feed",
-    description:
-      "Placeholder listing for layer feed for laying hens in a farm setting.",
-    details:
-      "Development demo listing. Confirm formulation and pricing with the supplier.",
-    price: "PKR 0,000",
-    priceValue: 0,
-    size: "20 kg",
-    availability: "on-request",
-    image: "/images/cattle-herd.jpg",
-    imageAlt: "Herd of cattle grazing in an open field",
-    demo: true,
+  related(product: Product, limit = 4): Product[] {
+    return inventory
+      .filter((item) => item.category === product.category && item.slug !== product.slug)
+      .slice(0, limit);
   },
+} as const;
 
-  // —— Grooming ——
-  {
-    slug: "gentle-pet-shampoo-400ml",
-    name: "Gentle Pet Shampoo — 400 ml",
-    brand: "Demo Brand",
-    category: "grooming",
-    description:
-      "Demo entry for a mild everyday shampoo for regular coat cleaning.",
-    details:
-      "Development demo listing. Ingredients, brand, and price pending verified inventory.",
-    price: "PKR 0,000",
-    priceValue: 0,
-    size: "400 ml",
-    availability: "in-stock",
-    image: "/images/dog-grooming.jpg",
-    imageAlt: "Dog being washed during grooming",
-    demo: true,
-  },
-  {
-    slug: "slicker-brush-medium",
-    name: "Slicker Brush — Medium",
-    brand: "Demo Brand",
-    category: "grooming",
-    description:
-      "Placeholder listing for a medium slicker brush for routine de-shedding.",
-    details:
-      "Development demo listing. Replace with verified product photography and specifications.",
-    price: "PKR 0,000",
-    priceValue: 0,
-    availability: "in-stock",
-    image: "/images/dog-hose.jpg",
-    imageAlt: "Dog being rinsed with water outdoors",
-    demo: true,
-  },
-  {
-    slug: "coat-conditioner-spray-250ml",
-    name: "Coat Conditioner Spray — 250 ml",
-    brand: "Demo Brand",
-    category: "grooming",
-    description:
-      "Demo listing for a leave-in coat conditioner spray after bathing.",
-    details:
-      "Development demo listing. Confirm brand and usage instructions before publishing.",
-    price: "PKR 0,000",
-    priceValue: 0,
-    size: "250 ml",
-    availability: "on-request",
-    image: "/images/dog-red-collar.jpg",
-    imageAlt: "Dog wearing a collar, coat in good condition",
-    demo: true,
-  },
-  {
-    slug: "nail-clipper-set",
-    name: "Nail Clipper Set",
-    brand: "Demo Brand",
-    category: "grooming",
-    description:
-      "Placeholder listing for a basic nail care set for dogs and cats.",
-    details:
-      "Development demo listing. Product details to be verified with the supplier.",
-    price: "PKR 0,000",
-    priceValue: 0,
-    availability: "unavailable",
-    image: "/images/cat.jpg",
-    imageAlt: "Cat resting, well-groomed coat",
-    demo: true,
-  },
-
-  // —— Accessories ——
-  {
-    slug: "nylon-dog-collar-adjustable",
-    name: "Nylon Dog Collar — Adjustable",
-    brand: "Demo Brand",
-    category: "accessories",
-    description:
-      "Demo entry for an adjustable everyday collar with a quick-release buckle.",
-    details:
-      "Development demo listing. Sizes, colours, and price await real inventory details.",
-    price: "PKR 0,000",
-    priceValue: 0,
-    availability: "in-stock",
-    image: "/images/dog-collar-leash.jpg",
-    imageAlt: "Golden retriever wearing a collar and leash",
-    demo: true,
-  },
-  {
-    slug: "padded-dog-harness",
-    name: "Padded Dog Harness",
-    brand: "Demo Brand",
-    category: "accessories",
-    description:
-      "Placeholder listing for a padded harness for controlled daily walks.",
-    details:
-      "Development demo listing. Replace with verified sizing chart and pricing.",
-    price: "PKR 0,000",
-    priceValue: 0,
-    availability: "on-request",
-    image: "/images/dog-harness.jpg",
-    imageAlt: "Dog wearing a padded harness on a leash",
-    demo: true,
-  },
-  {
-    slug: "stainless-feeding-bowl",
-    name: "Stainless Feeding Bowl",
-    brand: "Demo Brand",
-    category: "accessories",
-    description:
-      "Demo listing for a durable stainless feeding bowl for daily use.",
-    details:
-      "Development demo listing. Capacity and price to be confirmed.",
-    price: "PKR 0,000",
-    priceValue: 0,
-    availability: "in-stock",
-    image: "/images/dog-bed-bowl.jpg",
-    imageAlt: "Dog resting beside a food bowl in a bed",
-    demo: true,
-  },
-  {
-    slug: "braided-leash-1-5m",
-    name: "Braided Leash — 1.5 m",
-    brand: "Demo Brand",
-    category: "accessories",
-    description:
-      "Placeholder listing for a everyday braided lead with a metal clip.",
-    details:
-      "Development demo listing. Verify material and length before publishing.",
-    price: "PKR 0,000",
-    priceValue: 0,
-    size: "1.5 m",
-    availability: "on-request",
-    image: "/images/dog-collar-leash.jpg",
-    imageAlt: "Dog on a leash during a walk",
-    demo: true,
-  },
-
-  // —— Healthcare ——
-  {
-    slug: "multivitamin-drops-100ml",
-    name: "Multivitamin Drops — 100 ml",
-    brand: "Demo Brand",
-    category: "healthcare",
-    description:
-      "Demo listing for a supportive multivitamin product for companion animals. Discuss use with your veterinarian.",
-    details:
-      "Development demo listing. Administration guidance, brand, and price require verification before launch.",
-    price: "PKR 0,000",
-    priceValue: 0,
-    size: "100 ml",
-    availability: "on-request",
-    image: "/images/medicine-bottle.jpg",
-    imageAlt: "Bottle of capsules on a clean surface",
-    demo: true,
-  },
-  {
-    slug: "ear-cleaning-solution-60ml",
-    name: "Ear Cleaning Solution — 60 ml",
-    brand: "Demo Brand",
-    category: "healthcare",
-    description:
-      "Placeholder listing for routine ear-cleaning solution for dogs and cats.",
-    details:
-      "Development demo listing. Not a treatment claim — confirm suitability with your veterinarian.",
-    price: "PKR 0,000",
-    priceValue: 0,
-    size: "60 ml",
-    availability: "in-stock",
-    image: "/images/medicine-closeup.jpg",
-    imageAlt: "Close-up of a medicine bottle",
-    demo: true,
-  },
-  {
-    slug: "wound-care-spray-120ml",
-    name: "Wound Care Spray — 120 ml",
-    brand: "Demo Brand",
-    category: "healthcare",
-    description:
-      "Demo entry for an external wound-care product for minor grazing. Veterinary advice recommended.",
-    details:
-      "Development demo listing. Replace with the verified product label and instructions.",
-    price: "PKR 0,000",
-    priceValue: 0,
-    size: "120 ml",
-    availability: "unavailable",
-    image: "/images/medicine-table.jpg",
-    imageAlt: "Medicine bottle on a wooden table",
-    demo: true,
-  },
-  {
-    slug: "probiotic-powder-pets-200g",
-    name: "Probiotic Powder for Pets — 200 g",
-    brand: "Demo Brand",
-    category: "healthcare",
-    description:
-      "Placeholder listing for a supportive probiotic powder. Confirm suitability with your veterinarian.",
-    details:
-      "Development demo listing. Strain information and feeding guidance pending verification.",
-    price: "PKR 0,000",
-    priceValue: 0,
-    size: "200 g",
-    availability: "on-request",
-    image: "/images/white-bottle.jpg",
-    imageAlt: "Plain white supplement bottle",
-    demo: true,
-  },
-];
+/** Snapshot of the inventory used by pages and the client catalogue. */
+export const products: Product[] = [...productSource.list()];
 
 export function getCategoryBySlug(slug: string): ProductCategory | undefined {
   return productCategories.find((category) => category.slug === slug);
 }
 
 export function getProductBySlug(slug: string): Product | undefined {
-  return products.find((product) => product.slug === slug);
+  return productSource.bySlug(slug);
 }
 
 export function getProductsByCategory(slug: ProductCategorySlug): Product[] {
-  return products.filter((product) => product.category === slug);
+  return productSource.byCategory(slug);
 }
 
 export function getRelatedProducts(product: Product, limit = 4): Product[] {
-  return products
-    .filter((p) => p.category === product.category && p.slug !== product.slug)
-    .slice(0, limit);
+  return productSource.related(product, limit);
 }
 
 export const availabilityLabel: Record<ProductAvailability, string> = {
@@ -466,6 +167,16 @@ export const availabilityLabel: Record<ProductAvailability, string> = {
 
 export type ProductSort = "featured" | "price-asc" | "price-desc" | "name";
 
+/** Items without a verified price always sort after priced items. */
+function comparePrice(a: Product, b: Product, direction: 1 | -1): number {
+  const aValue = a.priceValue;
+  const bValue = b.priceValue;
+  if (aValue == null && bValue == null) return 0;
+  if (aValue == null) return 1;
+  if (bValue == null) return -1;
+  return direction * (aValue - bValue);
+}
+
 export function sortProducts(
   list: Product[],
   sort: ProductSort,
@@ -473,13 +184,38 @@ export function sortProducts(
   const copy = [...list];
   switch (sort) {
     case "price-asc":
-      return copy.sort((a, b) => a.priceValue - b.priceValue);
+      return copy.sort((a, b) => comparePrice(a, b, 1));
     case "price-desc":
-      return copy.sort((a, b) => b.priceValue - a.priceValue);
+      return copy.sort((a, b) => comparePrice(a, b, -1));
     case "name":
       return copy.sort((a, b) => a.name.localeCompare(b.name));
     case "featured":
     default:
       return copy;
   }
+}
+
+/**
+ * Search + sort over a single dataset. Category filtering happens upstream
+ * (route → `getProductsByCategory`), so search, sorting, and result counts
+ * always operate on the same records.
+ */
+export function queryProducts(
+  list: Product[],
+  options: { query?: string; sort?: ProductSort } = {},
+): Product[] {
+  const term = options.query?.trim().toLowerCase();
+  const matched = term
+    ? list.filter((product) => {
+        const haystack = [
+          product.name,
+          product.brand ?? "",
+          product.description,
+          product.size ?? "",
+          getCategoryBySlug(product.category)?.name ?? "",
+        ];
+        return haystack.some((value) => value.toLowerCase().includes(term));
+      })
+    : [...list];
+  return sortProducts(matched, options.sort ?? "featured");
 }

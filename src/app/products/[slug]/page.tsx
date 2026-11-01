@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, MessageCircle } from "lucide-react";
+import { ArrowLeft, MessageCircle, Package } from "lucide-react";
 import { Container } from "@/components/ui/Container";
 import { Section } from "@/components/ui/Section";
 import { Breadcrumbs } from "@/components/ui/Breadcrumbs";
@@ -20,9 +20,14 @@ import {
 } from "@/data/products";
 import { waLink } from "@/lib/whatsapp";
 
-// Static catalog: pre-render known slugs; unknown slugs hit notFound().
+// Cache Components requires at least one param for build-time validation.
+// While no verified inventory is published the placeholder slug prerenders
+// the not-found state; real product slugs replace it as soon as data lands.
+const placeholderSlug = "__catalogue-unpublished__";
+
 export function generateStaticParams() {
-  return products.map((product) => ({ slug: product.slug }));
+  const slugs = products.map((product) => ({ slug: product.slug }));
+  return slugs.length > 0 ? slugs : [{ slug: placeholderSlug }];
 }
 
 // This route reads `params` before render; allow it to be a blocking
@@ -86,30 +91,42 @@ export default async function ProductDetailPage({
         <div className="grid gap-10 lg:grid-cols-12 lg:gap-14">
           <div className="lg:col-span-7">
             <MediaReveal delay={0.08}>
-              <div className="relative aspect-[4/5] w-full overflow-hidden bg-sage sm:aspect-square">
-                <Image
-                  src={product.image}
-                  alt={product.imageAlt}
-                  fill
-                  priority
-                  sizes="(max-width: 1024px) 100vw, 55vw"
-                  className="object-cover"
-                />
+              <div className="relative aspect-[4/5] w-full overflow-hidden border border-border-subtle bg-sage/40 sm:aspect-square">
+                {product.image ? (
+                  <Image
+                    src={product.image}
+                    alt={product.imageAlt ?? product.name}
+                    fill
+                    priority
+                    sizes="(max-width: 1024px) 100vw, 55vw"
+                    className="object-contain p-6"
+                  />
+                ) : (
+                  <div className="flex h-full w-full items-center justify-center">
+                    <Package
+                      className="h-10 w-10 text-forest/30"
+                      aria-hidden="true"
+                    />
+                  </div>
+                )}
               </div>
             </MediaReveal>
           </div>
 
           <div className="lg:col-span-5">
             <Reveal immediate delay={0.1}>
-              {product.demo ? (
-                <span className="mb-4 inline-flex items-center rounded-control border border-amber/40 bg-amber/10 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.1em] text-[#8a5f34]">
-                  Development demo listing
-                </span>
+              {product.brand ? (
+                <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted">
+                  {product.brand}
+                </p>
               ) : null}
-              <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted">
-                {product.brand}
-              </p>
-              <h1 className="mt-2 text-display text-balance text-[30px] text-charcoal sm:text-[38px]">
+              <h1
+                className={
+                  product.brand
+                    ? "mt-2 text-display text-balance text-[30px] text-charcoal sm:text-[38px]"
+                    : "text-display text-balance text-[30px] text-charcoal sm:text-[38px]"
+                }
+              >
                 {product.name}
               </h1>
               {product.size ? (
@@ -153,17 +170,19 @@ export default async function ProductDetailPage({
               Product details
             </h2>
             <p className="mt-4 text-[16px] leading-relaxed text-muted">
-              {product.details}
+              {product.details ?? product.description}
             </p>
           </Reveal>
           <Reveal delay={0.08} className="lg:col-span-6 lg:col-start-7">
             <dl className="divide-y divide-border-subtle rounded-card border border-border-subtle bg-white">
-              <div className="flex items-center justify-between gap-4 px-5 py-4">
-                <dt className="text-[14px] text-muted">Availability</dt>
-                <dd className="text-[15px] font-medium text-charcoal">
-                  {availabilityLabel[product.availability]}
-                </dd>
-              </div>
+              {product.availability ? (
+                <div className="flex items-center justify-between gap-4 px-5 py-4">
+                  <dt className="text-[14px] text-muted">Availability</dt>
+                  <dd className="text-[15px] font-medium text-charcoal">
+                    {availabilityLabel[product.availability]}
+                  </dd>
+                </div>
+              ) : null}
               {product.size ? (
                 <div className="flex items-center justify-between gap-4 px-5 py-4">
                   <dt className="text-[14px] text-muted">Pack size</dt>
@@ -184,12 +203,9 @@ export default async function ProductDetailPage({
                 </dd>
               </div>
               <div className="flex items-center justify-between gap-4 px-5 py-4">
-                <dt className="text-[14px] text-muted">Price shown</dt>
+                <dt className="text-[14px] text-muted">Price</dt>
                 <dd className="text-[15px] font-medium text-charcoal">
-                  {product.price}
-                  <span className="ml-2 text-[12px] font-normal uppercase tracking-[0.08em] text-muted">
-                    Demo
-                  </span>
+                  {product.price ?? "Confirmed on WhatsApp"}
                 </dd>
               </div>
             </dl>
@@ -212,15 +228,20 @@ export default async function ProductDetailPage({
                   href={`/products/${item.slug}`}
                   name={item.name}
                   brand={item.brand}
+                  size={item.size}
                   description={item.description}
                   price={item.price}
                   imageSrc={item.image}
                   imageAlt={item.imageAlt}
-                  availability={availabilityLabel[item.availability]}
-                  availabilityTone={
-                    item.availability === "unavailable" ? "muted" : "neutral"
-                  }
-                  demo={item.demo}
+                  availability={item.availability}
+                  whatsapp={{
+                    href: waLink(
+                      `Hello Dr. Ali Ahmad, I would like to ask about ${
+                        item.brand ? `${item.brand} ` : ""
+                      }${item.name}. Please share current availability and pricing.`,
+                    ),
+                    label: "Enquire",
+                  }}
                   className="h-full"
                 />
               </Reveal>

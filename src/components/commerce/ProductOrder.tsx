@@ -28,9 +28,10 @@ export function ProductOrder({ product }: ProductOrderProps) {
   const message = [
     "Hello Dr. Ali Ahmad, I would like to order:",
     `Product: ${product.name}`,
-    `Brand: ${product.brand}`,
+    product.brand ? `Brand: ${product.brand}` : "",
+    product.size ? `Pack size: ${product.size}` : "",
     `Quantity: ${quantity}`,
-    `Price shown: ${product.price} (demo listing)`,
+    product.price ? `Price shown: ${product.price}` : "",
     pageLink ? `Link: ${pageLink}` : "",
     "",
     "Please confirm availability and the total.",
@@ -40,15 +41,21 @@ export function ProductOrder({ product }: ProductOrderProps) {
 
   return (
     <div className="rounded-card border border-border-subtle bg-white p-6">
-      <div className="flex items-center justify-between gap-4">
-        <div>
-          <p className="text-[12px] font-semibold uppercase tracking-[0.12em] text-muted">
-            Price
-          </p>
-          <p className="mt-1 text-[26px] font-semibold text-forest">
+      <div>
+        <p className="text-[12px] font-semibold uppercase tracking-[0.12em] text-muted">
+          Price
+        </p>
+        {product.price ? (
+          <p className="mt-1 text-[26px] font-semibold leading-8 text-forest">
             {product.price}
           </p>
-          <p className="mt-1 inline-flex items-center gap-1.5 text-[14px] text-charcoal/80">
+        ) : (
+          <p className="mt-1.5 text-[17px] font-medium leading-6 text-charcoal/75">
+            Confirmed on WhatsApp
+          </p>
+        )}
+        {product.availability ? (
+          <p className="mt-2 inline-flex items-center gap-1.5 text-[14px] text-charcoal/80">
             <span
               className={`h-2 w-2 rounded-full ${
                 unavailable ? "bg-muted" : "bg-forest"
@@ -57,10 +64,7 @@ export function ProductOrder({ product }: ProductOrderProps) {
             />
             {availabilityLabel[product.availability]}
           </p>
-        </div>
-        <span className="inline-flex items-center rounded-control border border-amber/40 bg-amber/10 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.1em] text-[#8a5f34]">
-          Demo data
-        </span>
+        ) : null}
       </div>
 
       <div className="mt-6">
@@ -115,7 +119,7 @@ export function ProductOrder({ product }: ProductOrderProps) {
       </Button>
       <p className="mt-3 text-[13px] leading-relaxed text-muted">
         Opens WhatsApp with the product name, quantity, and page link
-        prefilled. Availability is confirmed on chat.
+        prefilled. Availability and pricing are confirmed on chat.
       </p>
     </div>
   );

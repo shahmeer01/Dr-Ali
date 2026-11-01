@@ -268,8 +268,8 @@ export default function WildlifeExoticPage() {
             </h2>
             <p className="mt-4 text-[16px] leading-relaxed text-muted md:text-[17px]">
               {siteConfig.name} is a veterinary surgeon based in{" "}
-              {siteConfig.location}, with 3 years of experience in animal
-              healthcare. Consultations focus on careful examination, plain
+              {siteConfig.location}, an experienced veterinary doctor.
+              Consultations focus on careful examination, plain
               explanations, and responsible treatment — arranged around the
               animal&apos;s needs and the available facilities.
             </p>

@@ -19,18 +19,6 @@ import {
 
 const featuredProducts = products.slice(0, 4);
 
-/**
- * Temporary editorial descriptions for the four homepage cards — concise,
- * customer-friendly copy kept local to this section until confirmed product
- * details are available (no unverified benefits or specifications).
- */
-const featuredDescriptions: Record<string, string> = {
-  "adult-dog-dry-food-3kg": "Everyday nutrition for adult dogs.",
-  "puppy-dry-food-2kg": "Nutrition formulated for growing puppies.",
-  "cat-dry-food-1-5kg": "Daily nutrition for cats.",
-  "dental-chews-assorted": "Dental chews for everyday oral-care routines.",
-};
-
 /** Animal-care categories — cards linking to their care pages. */
 const animalCards = [
   {
@@ -302,14 +290,14 @@ export default function Home() {
             <p className="mt-4 text-[16px] leading-relaxed text-muted">
               Dr. Ali Ahmad provides veterinary consultations, home visits
               and farm consultations in Lahore, with a focus on animal health
-              and responsible treatment. He has 3 years of experience in
-              animal healthcare.
+              and responsible treatment. He is an experienced veterinary
+              doctor.
             </p>
             <ul
               aria-label="Credentials"
               className="mt-5 flex flex-wrap items-center gap-2"
             >
-              {["DVM", "RVMP", "3 years of veterinary experience"].map(
+              {["DVM", "RVMP", "Experienced Veterinarian"].map(
                 (credential) => (
                   <li
                     key={credential}
@@ -333,50 +321,50 @@ export default function Home() {
         </div>
       </Section>
 
-      {/* Selected products — product data, images, and WhatsApp actions preserved */}
-      <Section surface="ivory" spacing="default">
-        <Reveal className="flex flex-wrap items-end justify-between gap-4">
-          <div>
-            <p className="text-[12px] font-semibold uppercase tracking-[0.14em] text-amber">
-              Catalog
-            </p>
+      {/* Selected products — hidden until verified inventory is published */}
+      {featuredProducts.length > 0 ? (
+        <Section surface="ivory" spacing="default">
+          <Reveal className="flex flex-wrap items-end justify-between gap-4">
+            <div>
+              <p className="text-[12px] font-semibold uppercase tracking-[0.14em] text-amber">
+                Catalog
+              </p>
               <h2 className="mt-2 max-w-lg text-[30px] font-medium tracking-[-0.02em] text-charcoal md:text-[40px]">
-              Selected products
-            </h2>
-          </div>
-          <Button href="/products" size="md" variant="ghost">
-            View all products
-          </Button>
-        </Reveal>
+                Selected products
+              </h2>
+            </div>
+            <Button href="/products" size="md" variant="ghost">
+              View all products
+            </Button>
+          </Reveal>
 
-        <div className="mt-10 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
-          {featuredProducts.map((product, i) => {
-            const isUnavailable = product.availability === "unavailable";
-            const waLabel = isUnavailable
-              ? "Enquire on WhatsApp"
-              : "Order on WhatsApp";
-            const waMessage = isUnavailable
-              ? `Assalam-o-Alaikum, I would like to enquire about ${product.name}. Please share restock availability and the price.`
-              : `Assalam-o-Alaikum, I would like to enquire about ordering ${product.name}. Please share the price and availability.`;
-            return (
-              <Reveal key={product.slug} staggerIndex={i}>
-                <ProductCard
-                  compact
-                  href={`/products/${product.slug}`}
-                  name={product.name}
-                  description={
-                    featuredDescriptions[product.slug] ?? product.description
-                  }
-                  imageSrc={product.image}
-                  imageAlt={product.imageAlt}
-                  whatsapp={{ href: waLink(waMessage), label: waLabel }}
-                  className="h-full"
-                />
-              </Reveal>
-            );
-          })}
-        </div>
-      </Section>
+          <div className="mt-10 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+            {featuredProducts.map((product, i) => {
+              const isUnavailable = product.availability === "unavailable";
+              const waLabel = isUnavailable
+                ? "Enquire on WhatsApp"
+                : "Order on WhatsApp";
+              const waMessage = isUnavailable
+                ? `Assalam-o-Alaikum, I would like to enquire about ${product.name}. Please share restock availability and the price.`
+                : `Assalam-o-Alaikum, I would like to enquire about ordering ${product.name}. Please share the price and availability.`;
+              return (
+                <Reveal key={product.slug} staggerIndex={i}>
+                  <ProductCard
+                    compact
+                    href={`/products/${product.slug}`}
+                    name={product.name}
+                    description={product.description}
+                    imageSrc={product.image}
+                    imageAlt={product.imageAlt}
+                    whatsapp={{ href: waLink(waMessage), label: waLabel }}
+                    className="h-full"
+                  />
+                </Reveal>
+              );
+            })}
+          </div>
+        </Section>
+      ) : null}
 
       {/* Closing contact CTA — WhatsApp + call, shared band into the footer */}
       <WhatsAppBand

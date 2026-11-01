@@ -200,29 +200,27 @@ export default function DesignSystemPage() {
             Product card
           </h2>
           <p className="mt-2 max-w-xl text-[16px] text-muted">
-            Consistent 4:5 media ratio, readable price, restrained elevation.
-            Placeholder imagery only — replace with real product photography.
+            Consistent 4:5 media ratio with a packaging-friendly contain fit,
+            restrained elevation. Layout placeholders only — real prices and
+            availability render only when verified data exists.
           </p>
         </Reveal>
         <Reveal className="mt-10 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
           <ProductCard
             name="Sample supplement"
             description="Placeholder product for layout QA."
-            price="PKR 0,000"
             imageSrc="/placeholder-product.svg"
             imageAlt="Placeholder product image"
           />
           <ProductCard
             name="Sample feed additive"
             description="Placeholder product for layout QA."
-            price="PKR 0,000"
             imageSrc="/placeholder-product.svg"
             imageAlt="Placeholder product image"
           />
           <ProductCard
             name="Sample care kit"
             description="Placeholder product for layout QA."
-            price="PKR 0,000"
             imageSrc="/placeholder-product.svg"
             imageAlt="Placeholder product image"
           />

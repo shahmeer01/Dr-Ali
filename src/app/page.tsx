@@ -4,10 +4,10 @@ import { WhatsAppBand } from "@/components/ui/WhatsAppBand";
 import { Reveal, MediaReveal } from "@/components/motion/Reveal";
 import { HeroSequence } from "@/components/motion/HeroSequence";
 import { MaskedWords } from "@/components/motion/MaskedWords";
-import { ProductCard } from "@/components/commerce/ProductCard";
-import { products } from "@/data/products";
-import { waLink, generalEnquiryMessage } from "@/lib/whatsapp";
+import { FeaturedProducts } from "@/components/commerce/FeaturedProducts";
+import { generalEnquiryMessage } from "@/lib/whatsapp";
 import Image from "next/image";
+import { Suspense } from "react";
 import {
   ArrowUpRight,
   Cross,
@@ -16,8 +16,6 @@ import {
   Stethoscope,
   Tractor,
 } from "lucide-react";
-
-const featuredProducts = products.slice(0, 4);
 
 /** Animal-care categories — cards linking to their care pages. */
 const animalCards = [
@@ -321,50 +319,11 @@ export default function Home() {
         </div>
       </Section>
 
-      {/* Selected products — hidden until verified inventory is published */}
-      {featuredProducts.length > 0 ? (
-        <Section surface="ivory" spacing="default">
-          <Reveal className="flex flex-wrap items-end justify-between gap-4">
-            <div>
-              <p className="text-[12px] font-semibold uppercase tracking-[0.14em] text-amber">
-                Catalog
-              </p>
-              <h2 className="mt-2 max-w-lg text-[30px] font-medium tracking-[-0.02em] text-charcoal md:text-[40px]">
-                Selected products
-              </h2>
-            </div>
-            <Button href="/products" size="md" variant="ghost">
-              View all products
-            </Button>
-          </Reveal>
-
-          <div className="mt-10 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
-            {featuredProducts.map((product, i) => {
-              const isUnavailable = product.availability === "unavailable";
-              const waLabel = isUnavailable
-                ? "Enquire on WhatsApp"
-                : "Order on WhatsApp";
-              const waMessage = isUnavailable
-                ? `Assalam-o-Alaikum, I would like to enquire about ${product.name}. Please share restock availability and the price.`
-                : `Assalam-o-Alaikum, I would like to enquire about ordering ${product.name}. Please share the price and availability.`;
-              return (
-                <Reveal key={product.slug} staggerIndex={i}>
-                  <ProductCard
-                    compact
-                    href={`/products/${product.slug}`}
-                    name={product.name}
-                    description={product.description}
-                    imageSrc={product.image}
-                    imageAlt={product.imageAlt}
-                    whatsapp={{ href: waLink(waMessage), label: waLabel }}
-                    className="h-full"
-                  />
-                </Reveal>
-              );
-            })}
-          </div>
-        </Section>
-      ) : null}
+      {/* Selected products — featured picks from the catalogue (streamed;
+          renders nothing until products are featured in the admin panel) */}
+      <Suspense fallback={null}>
+        <FeaturedProducts />
+      </Suspense>
 
       {/* Closing contact CTA — WhatsApp + call, shared band into the footer */}
       <WhatsAppBand

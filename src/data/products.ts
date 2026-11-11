@@ -1,21 +1,11 @@
 /**
- * Product catalogue — the single typed data source for every product listing
- * on the site (category routes, the /products index, the homepage picks, and
- * product detail pages).
+ * Product catalogue — shared types, category metadata, and pure helpers
+ * (search, sorting, labels) used by both server pages and client
+ * components.
  *
- * Integration boundary
- * --------------------
- * `inventory` below is the only place product records enter the application.
- * It is intentionally empty: no verified inventory (names, brands, pack
- * sizes, prices, stock status, photography) has been supplied yet, so
- * nothing is published as a listing. The UI renders a safe "products are
- * being updated" state instead.
- *
- * When a backend, CMS, ERP, or supplier feed becomes available, resolve it
- * here (server-side fetch / SDK call) and map the response onto the
- * `Product` type — the exported accessors stay unchanged and every consumer
- * (search, filtering, sorting, counts) keeps reading the same dataset.
- * Components must never hold their own hardcoded product records.
+ * Runtime product data comes from Supabase via `src/lib/catalog.ts`
+ * (server-side fetches honouring RLS). Components must never hold their
+ * own hardcoded product records.
  */
 
 export type ProductCategorySlug =
@@ -41,10 +31,14 @@ export type Product = {
   description: string;
   /** Longer factual copy for the product detail page. */
   details?: string;
-  /** Verified display price, e.g. "PKR 1,200". Omit until supplied — never faked. */
+  /** Verified price the customer pays, e.g. "PKR 1,200". Omit until supplied — never faked. */
   price?: string;
-  /** Numeric price used for sorting; only meaningful when `price` exists. */
+  /** Numeric price the customer pays; drives price sorting. Only meaningful when `price` exists. */
   priceValue?: number;
+  /** Original price before a discount, rendered struck through. Only set when strictly higher than `price`. */
+  comparePrice?: string;
+  /** Whole-percent saving against `comparePrice` (>= 1). Derived from the two prices — never typed by hand. */
+  discountPercent?: number;
   /** Verified pack size, e.g. "3 kg". Omit when unconfirmed. */
   size?: string;
   /** Verified availability. Omit when unconfirmed. */
@@ -52,6 +46,19 @@ export type Product = {
   /** Product photography. Omitted entries fall back to a neutral panel. */
   image?: string;
   imageAlt?: string;
+  /**
+   * Full gallery for the detail page, in display order (primary flagged).
+   * Only populated by the detail-page fetch; card/list queries leave it
+   * unset and rely on `image` (the synced primary) alone.
+   */
+  images?: ProductGalleryImage[];
+};
+
+/** One image in a product's public gallery. */
+export type ProductGalleryImage = {
+  src: string;
+  alt: string;
+  isPrimary: boolean;
 };
 
 export type ProductCategory = {
@@ -111,52 +118,8 @@ export const productCategories: ProductCategory[] = [
   },
 ];
 
-/**
- * Verified inventory feed. Empty until real product data is connected —
- * see the module docblock for how to plug a source in.
- */
-const inventory: readonly Product[] = [];
-
-/**
- * Read-only accessors over `inventory`. This object is the integration
- * boundary: swapping the static list for an API/CMS response only touches
- * this module.
- */
-export const productSource = {
-  /** All verified listings, in curated order. */
-  list(): readonly Product[] {
-    return inventory;
-  },
-  bySlug(slug: string): Product | undefined {
-    return inventory.find((product) => product.slug === slug);
-  },
-  byCategory(slug: ProductCategorySlug): Product[] {
-    return inventory.filter((product) => product.category === slug);
-  },
-  related(product: Product, limit = 4): Product[] {
-    return inventory
-      .filter((item) => item.category === product.category && item.slug !== product.slug)
-      .slice(0, limit);
-  },
-} as const;
-
-/** Snapshot of the inventory used by pages and the client catalogue. */
-export const products: Product[] = [...productSource.list()];
-
 export function getCategoryBySlug(slug: string): ProductCategory | undefined {
   return productCategories.find((category) => category.slug === slug);
-}
-
-export function getProductBySlug(slug: string): Product | undefined {
-  return productSource.bySlug(slug);
-}
-
-export function getProductsByCategory(slug: ProductCategorySlug): Product[] {
-  return productSource.byCategory(slug);
-}
-
-export function getRelatedProducts(product: Product, limit = 4): Product[] {
-  return productSource.related(product, limit);
 }
 
 export const availabilityLabel: Record<ProductAvailability, string> = {
@@ -197,12 +160,18 @@ export function sortProducts(
 
 /**
  * Search + sort over a single dataset. Category filtering happens upstream
- * (route → `getProductsByCategory`), so search, sorting, and result counts
- * always operate on the same records.
+ * (route → `fetchProductsByCategory`), so search, sorting, and result
+ * counts always operate on the same records. `categoryNames` maps DB
+ * category slugs → display names so search also matches admin-created
+ * categories (static five fall back to `getCategoryBySlug`).
  */
 export function queryProducts(
   list: Product[],
-  options: { query?: string; sort?: ProductSort } = {},
+  options: {
+    query?: string;
+    sort?: ProductSort;
+    categoryNames?: Record<string, string>;
+  } = {},
 ): Product[] {
   const term = options.query?.trim().toLowerCase();
   const matched = term
@@ -212,7 +181,9 @@ export function queryProducts(
           product.brand ?? "",
           product.description,
           product.size ?? "",
-          getCategoryBySlug(product.category)?.name ?? "",
+          options.categoryNames?.[product.category] ??
+            getCategoryBySlug(product.category)?.name ??
+            "",
         ];
         return haystack.some((value) => value.toLowerCase().includes(term));
       })

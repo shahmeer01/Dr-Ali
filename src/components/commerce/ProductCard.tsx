@@ -15,6 +15,10 @@ type ProductCardProps = {
   description?: string;
   /** Verified price — never rendered when absent (no placeholder values). */
   price?: string;
+  /** Original price before a discount — struck through next to `price`. */
+  comparePrice?: string;
+  /** Whole-percent saving vs `comparePrice`; rendered as a small badge. */
+  discountPercent?: number;
   /** Verified availability — rendered only when supplied. */
   availability?: ProductAvailability;
   /** Product photography; falls back to a neutral panel when absent. */
@@ -26,8 +30,9 @@ type ProductCardProps = {
   /** Extra element rendered above the brand line (e.g. category chip). */
   meta?: ReactNode;
   /**
-   * Reduced card body: title and a two-line description only — hides brand,
-   * pack size, price, and availability, with tighter content padding.
+   * Reduced card body: title, a two-line description, and the price when
+   * supplied — hides brand, pack size, and availability, with tighter
+   * content padding.
    */
   compact?: boolean;
   /** WhatsApp enquiry action pinned to the card bottom. */
@@ -64,6 +69,8 @@ export function ProductCard({
   size,
   description,
   price,
+  comparePrice,
+  discountPercent,
   availability,
   imageSrc,
   imageAlt,
@@ -101,6 +108,23 @@ export function ProductCard({
           {description}
         </p>
       ) : null}
+      {price ? (
+        <div className="mt-auto flex flex-wrap items-baseline gap-x-2 gap-y-1 pt-3">
+          <p className="text-[16px] font-semibold leading-6 text-forest">
+            {price}
+          </p>
+          {comparePrice ? (
+            <p className="text-[13px] leading-5 text-muted line-through">
+              {comparePrice}
+            </p>
+          ) : null}
+          {discountPercent != null ? (
+            <span className="inline-flex items-center rounded-control bg-amber/25 px-1.5 py-0.5 text-[11px] font-semibold leading-4 text-charcoal">
+              -{discountPercent}%
+            </span>
+          ) : null}
+        </div>
+      ) : null}
     </div>
   ) : (
     <div className="flex flex-1 flex-col p-5">
@@ -129,11 +153,23 @@ export function ProductCard({
         </p>
       ) : null}
       {price || availability ? (
-        <div className="mt-auto flex flex-wrap items-center gap-x-3 gap-y-1 pt-4">
+        <div className="mt-auto flex flex-wrap items-center justify-between gap-x-3 gap-y-1 pt-4">
           {price ? (
-            <p className="text-[16px] font-semibold leading-6 text-forest">
-              {price}
-            </p>
+            <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
+              <p className="text-[16px] font-semibold leading-6 text-forest">
+                {price}
+              </p>
+              {comparePrice ? (
+                <p className="text-[13px] leading-5 text-muted line-through">
+                  {comparePrice}
+                </p>
+              ) : null}
+              {discountPercent != null ? (
+                <span className="inline-flex items-center rounded-control bg-amber/25 px-1.5 py-0.5 text-[11px] font-semibold leading-4 text-charcoal">
+                  -{discountPercent}%
+                </span>
+              ) : null}
+            </div>
           ) : null}
           {availability ? (
             <p
@@ -191,8 +227,8 @@ export function ProductCard({
     <article
       className={cn(
         "group flex h-full flex-col overflow-hidden rounded-card border border-border-subtle bg-white",
-        "transition-[box-shadow,border-color] duration-[280ms] ease-[cubic-bezier(0.22,1,0.36,1)]",
-        "hover:border-forest/25 hover:shadow-card-hover focus-within:border-forest/25 focus-within:shadow-card-hover",
+        "transition-[box-shadow,border-color,transform] duration-[280ms] ease-[cubic-bezier(0.22,1,0.36,1)]",
+        "hover:-translate-y-0.5 hover:border-forest/25 hover:shadow-card-hover focus-within:-translate-y-0.5 focus-within:border-forest/25 focus-within:shadow-card-hover",
         className,
       )}
     >

@@ -5,6 +5,7 @@ import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { ScrollToTop } from "@/components/layout/ScrollToTop";
 import { siteConfig } from "@/config/site";
+import { fetchPublicCategories } from "@/lib/catalog";
 import "./globals.css";
 
 const dmSans = DM_Sans({
@@ -28,7 +29,11 @@ export const metadata: Metadata = {
   description: siteConfig.description,
 };
 
-export default function RootLayout({ children }: { children: ReactNode }) {
+export default async function RootLayout({ children }: { children: ReactNode }) {
+  // Cached, cookie-less fetch — stays prerenderable under Cache Components
+  // and revalidated via the "public-categories" tag after admin mutations.
+  const categories = await fetchPublicCategories();
+
   return (
     <html
       lang="en"
@@ -42,11 +47,11 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           Skip to content
         </a>
         <ScrollToTop />
-        <Header />
+        <Header categories={categories} />
         <main id="main" className="flex-1">
           {children}
         </main>
-        <Footer />
+        <Footer categories={categories} />
       </body>
     </html>
   );

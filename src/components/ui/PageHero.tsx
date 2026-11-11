@@ -1,6 +1,7 @@
 import Image from "next/image";
 import type { ReactNode } from "react";
 import { Container } from "@/components/ui/Container";
+import { Breadcrumbs, type BreadcrumbItem } from "@/components/ui/Breadcrumbs";
 import { Reveal, MediaReveal } from "@/components/motion/Reveal";
 
 type PageHeroProps = {
@@ -18,6 +19,8 @@ type PageHeroProps = {
   actions?: ReactNode;
   /** Square-edged editorial media on the right (default) or full-width below */
   className?: string;
+  /** Optional breadcrumb trail rendered above the hero content */
+  breadcrumbs?: BreadcrumbItem[];
 };
 
 /**
@@ -35,6 +38,7 @@ export function PageHero({
   paddingClassName,
   actions,
   className,
+  breadcrumbs,
 }: PageHeroProps) {
   const titleSizes =
     titleClassName ?? "text-[36px] sm:text-[46px] lg:text-[60px]";
@@ -45,6 +49,7 @@ export function PageHero({
       className={`bg-ivory ${padding} ${className ?? ""}`}
     >
       <Container>
+        {breadcrumbs ? <Breadcrumbs items={breadcrumbs} /> : null}
         <div className="grid items-center gap-10 lg:grid-cols-12 lg:gap-14">
           <div className="lg:col-span-6 xl:col-span-5">
             {eyebrow ? (

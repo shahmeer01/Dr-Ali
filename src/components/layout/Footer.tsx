@@ -2,7 +2,7 @@ import Link from "next/link";
 import { MapPin, MessageCircle, Phone } from "lucide-react";
 import { Container } from "@/components/ui/Container";
 import { siteConfig } from "@/config/site";
-import { productCategories } from "@/data/products";
+import type { PublicCategory } from "@/lib/product-shared";
 import { generalEnquiryMessage, waLink } from "@/lib/whatsapp";
 
 const exploreLinks = [
@@ -23,7 +23,23 @@ const linkClass =
 const labelClass =
   "text-[12px] font-semibold uppercase tracking-[0.14em] text-white/70";
 
-export function Footer() {
+export function Footer({ categories }: { categories: PublicCategory[] }) {
+  // Hierarchy: top-level categories first (alphabetical, as served), each
+  // with its active subcategories nested beneath. A child whose parent is
+  // not in the list (e.g. hidden parent) surfaces at the top level.
+  const byId = new Map(categories.map((category) => [category.id, category]));
+  const childrenByParent = new Map<string, PublicCategory[]>();
+  const roots: PublicCategory[] = [];
+  for (const category of categories) {
+    if (category.parent_category_id && byId.has(category.parent_category_id)) {
+      const siblings = childrenByParent.get(category.parent_category_id) ?? [];
+      siblings.push(category);
+      childrenByParent.set(category.parent_category_id, siblings);
+    } else {
+      roots.push(category);
+    }
+  }
+
   return (
     <footer className="bg-forest text-white/85">
       <Container>
@@ -56,16 +72,32 @@ export function Footer() {
           </nav>
 
           <nav
-            aria-label="Product categories"
+            aria-label="Shop by category"
             className="lg:col-span-3 lg:col-start-7"
           >
             <p className={labelClass}>Products</p>
             <ul className="mt-4 space-y-2.5">
-              {productCategories.map((category) => (
+              {roots.map((category) => (
                 <li key={category.slug}>
                   <Link href={category.href} className={linkClass}>
                     {category.name}
                   </Link>
+                  {childrenByParent.get(category.id) ? (
+                    <ul className="mt-1.5 ml-3 space-y-1.5 border-l border-white/15 pl-3">
+                      {(childrenByParent.get(category.id) as PublicCategory[]).map(
+                        (child) => (
+                          <li key={child.slug}>
+                            <Link
+                              href={child.href}
+                              className="text-[14px] text-white/65 underline-offset-4 transition-colors duration-[180ms] hover:text-white hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ivory"
+                            >
+                              {child.name}
+                            </Link>
+                          </li>
+                        ),
+                      )}
+                    </ul>
+                  ) : null}
                 </li>
               ))}
             </ul>

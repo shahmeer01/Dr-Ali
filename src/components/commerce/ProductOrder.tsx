@@ -46,9 +46,21 @@ export function ProductOrder({ product }: ProductOrderProps) {
           Price
         </p>
         {product.price ? (
-          <p className="mt-1 text-[26px] font-semibold leading-8 text-forest">
-            {product.price}
-          </p>
+          <div className="mt-1 flex flex-wrap items-baseline gap-x-2.5 gap-y-1">
+            <p className="text-[26px] font-semibold leading-8 text-forest">
+              {product.price}
+            </p>
+            {product.comparePrice ? (
+              <p className="text-[16px] leading-6 text-muted line-through">
+                {product.comparePrice}
+              </p>
+            ) : null}
+            {product.discountPercent != null ? (
+              <span className="inline-flex items-center rounded-control bg-amber/25 px-2 py-0.5 text-[12px] font-semibold leading-5 text-charcoal">
+                -{product.discountPercent}%
+              </span>
+            ) : null}
+          </div>
         ) : (
           <p className="mt-1.5 text-[17px] font-medium leading-6 text-charcoal/75">
             Confirmed on WhatsApp

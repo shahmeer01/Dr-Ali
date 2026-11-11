@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
-import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, MessageCircle, Package } from "lucide-react";
+import { ArrowLeft, MessageCircle } from "lucide-react";
 import { Container } from "@/components/ui/Container";
 import { Section } from "@/components/ui/Section";
 import { Breadcrumbs } from "@/components/ui/Breadcrumbs";
@@ -10,28 +9,23 @@ import { Button } from "@/components/ui/Button";
 import { Reveal, MediaReveal } from "@/components/motion/Reveal";
 import { WhatsAppBand } from "@/components/ui/WhatsAppBand";
 import { ProductCard } from "@/components/commerce/ProductCard";
+import { ProductGallery } from "@/components/commerce/ProductGallery";
 import { ProductOrder } from "@/components/commerce/ProductOrder";
+import { CategoryPageView } from "@/components/commerce/CategoryPageView";
+import { PRODUCT_GRID_CLASS } from "@/components/commerce/productGrid";
 import {
   availabilityLabel,
-  getCategoryBySlug,
-  getProductBySlug,
-  getRelatedProducts,
-  products,
 } from "@/data/products";
+import {
+  fetchCatalogProducts,
+  fetchProductBySlug,
+  fetchPublicCategories,
+  fetchPublicCategoryBySlug,
+  relatedProducts,
+} from "@/lib/catalog";
 import { waLink } from "@/lib/whatsapp";
 
-// Cache Components requires at least one param for build-time validation.
-// While no verified inventory is published the placeholder slug prerenders
-// the not-found state; real product slugs replace it as soon as data lands.
-const placeholderSlug = "__catalogue-unpublished__";
-
-export function generateStaticParams() {
-  const slugs = products.map((product) => ({ slug: product.slug }));
-  return slugs.length > 0 ? slugs : [{ slug: placeholderSlug }];
-}
-
-// This route reads `params` before render; allow it to be a blocking
-// route instead of streaming shell data (Next.js 16 instant navigation).
+// Product data is fetched per request (Supabase + RLS; admins also see drafts).
 export const instant = false;
 
 export async function generateMetadata({
@@ -40,12 +34,24 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
   const { slug } = await params;
-  const product = getProductBySlug(slug);
-  if (!product) return { title: "Product not found" };
-  return {
-    title: product.name,
-    description: product.description,
-  };
+  const product = await fetchProductBySlug(slug);
+  if (product) {
+    return {
+      title: product.name,
+      description: product.description,
+    };
+  }
+  // Slug may belong to an active category (dynamic category route).
+  const category = await fetchPublicCategoryBySlug(slug);
+  if (category) {
+    return {
+      title: category.name,
+      description: category.description,
+    };
+  }
+  // Throwing here (before the PPR shell flushes) yields a true 404 status
+  // instead of a 200 shell that later streams the not-found boundary.
+  notFound();
 }
 
 export default async function ProductDetailPage({
@@ -54,11 +60,19 @@ export default async function ProductDetailPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const product = getProductBySlug(slug);
-  if (!product) notFound();
+  const product = await fetchProductBySlug(slug);
+  if (!product) {
+    // Product-first: an existing published product always wins the slug.
+    // Otherwise fall back to an active category, else 404.
+    const category = await fetchPublicCategoryBySlug(slug);
+    if (!category) notFound();
+    return <CategoryPageView slug={slug} />;
+  }
 
-  const category = getCategoryBySlug(product.category);
-  const related = getRelatedProducts(product);
+  const categories = await fetchPublicCategories();
+  const category = categories.find((item) => item.slug === product.category);
+  const allProducts = await fetchCatalogProducts();
+  const related = relatedProducts(allProducts, product);
 
   return (
     <>
@@ -91,25 +105,12 @@ export default async function ProductDetailPage({
         <div className="grid gap-10 lg:grid-cols-12 lg:gap-14">
           <div className="lg:col-span-7">
             <MediaReveal delay={0.08}>
-              <div className="relative aspect-[4/5] w-full overflow-hidden border border-border-subtle bg-sage/40 sm:aspect-square">
-                {product.image ? (
-                  <Image
-                    src={product.image}
-                    alt={product.imageAlt ?? product.name}
-                    fill
-                    priority
-                    sizes="(max-width: 1024px) 100vw, 55vw"
-                    className="object-contain p-6"
-                  />
-                ) : (
-                  <div className="flex h-full w-full items-center justify-center">
-                    <Package
-                      className="h-10 w-10 text-forest/30"
-                      aria-hidden="true"
-                    />
-                  </div>
-                )}
-              </div>
+              <ProductGallery
+                key={product.slug}
+                images={product.images}
+                name={product.name}
+                priority
+              />
             </MediaReveal>
           </div>
 
@@ -205,7 +206,23 @@ export default async function ProductDetailPage({
               <div className="flex items-center justify-between gap-4 px-5 py-4">
                 <dt className="text-[14px] text-muted">Price</dt>
                 <dd className="text-[15px] font-medium text-charcoal">
-                  {product.price ?? "Confirmed on WhatsApp"}
+                  {product.price ? (
+                    <span className="inline-flex flex-wrap items-baseline justify-end gap-x-2 gap-y-0.5">
+                      <span>{product.price}</span>
+                      {product.comparePrice ? (
+                        <s className="text-[14px] font-normal text-muted">
+                          {product.comparePrice}
+                        </s>
+                      ) : null}
+                      {product.discountPercent != null ? (
+                        <span className="text-[13px] font-semibold text-forest">
+                          -{product.discountPercent}%
+                        </span>
+                      ) : null}
+                    </span>
+                  ) : (
+                    "Confirmed on WhatsApp"
+                  )}
                 </dd>
               </div>
             </dl>
@@ -221,7 +238,7 @@ export default async function ProductDetailPage({
               Related products
             </h2>
           </Reveal>
-          <div className="mt-8 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+          <div className={`mt-8 ${PRODUCT_GRID_CLASS}`}>
             {related.map((item, i) => (
               <Reveal key={item.slug} staggerIndex={i}>
                 <ProductCard
@@ -231,6 +248,8 @@ export default async function ProductDetailPage({
                   size={item.size}
                   description={item.description}
                   price={item.price}
+                  comparePrice={item.comparePrice}
+                  discountPercent={item.discountPercent}
                   imageSrc={item.image}
                   imageAlt={item.imageAlt}
                   availability={item.availability}

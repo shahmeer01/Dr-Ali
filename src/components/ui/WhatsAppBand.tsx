@@ -15,7 +15,7 @@ type WhatsAppBandProps = {
   callLabel?: string;
   /** Reduced padding, type, and button scale for catalogue pages. */
   compact?: boolean;
-};
+};  
 
 /**
  * Shared WhatsApp + call-to-contact band used at the end of service pages.

@@ -1,14 +1,22 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+  type Dispatch,
+  type SetStateAction,
+} from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Menu, X, ChevronDown, Phone } from "lucide-react";
+import { Menu, X, ChevronDown, ChevronRight, Phone } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Container } from "@/components/ui/Container";
 import { WhatsAppIcon } from "@/components/ui/icons";
 import { siteConfig } from "@/config/site";
-import { productCategories } from "@/data/products";
+import type { PublicCategory } from "@/lib/product-shared";
 import { waLink } from "@/lib/whatsapp";
 import { cn } from "@/lib/utils";
 
@@ -21,15 +29,45 @@ const animalCareItems = [
   { name: "Wildlife & Exotic Animals", href: "/wildlife-exotic-animals" },
 ];
 
-type DropdownItem = { name: string; href: string };
+type DropdownItem = {
+  name: string;
+  href: string;
+  /** Subcategories nested under this item (name-sorted, may be empty). */
+  children?: DropdownItem[];
+};
 
 /** Dropdown destinations for a nav parent (null = plain link). */
-function getDropdownItems(href: string): DropdownItem[] | null {
+function getDropdownItems(
+  href: string,
+  categories: PublicCategory[],
+): DropdownItem[] | null {
   if (href === productHref) {
-    return productCategories.map((category) => ({
-      name: category.name,
-      href: category.href,
-    }));
+    // Hierarchy: top-level categories alphabetical, each with its active
+    // subcategories nested beneath (recursively, to any depth). A child
+    // whose parent is missing from the list (e.g. the parent is hidden)
+    // surfaces at the top level.
+    const byId = new Map(categories.map((category) => [category.id, category]));
+    const childrenByParent = new Map<string, PublicCategory[]>();
+    const roots: PublicCategory[] = [];
+    for (const category of categories) {
+      if (category.parent_category_id && byId.has(category.parent_category_id)) {
+        const siblings =
+          childrenByParent.get(category.parent_category_id) ?? [];
+        siblings.push(category);
+        childrenByParent.set(category.parent_category_id, siblings);
+      } else {
+        roots.push(category);
+      }
+    }
+    const toItem = (category: PublicCategory): DropdownItem => {
+      const children = (childrenByParent.get(category.id) ?? []).map(toItem);
+      return {
+        name: category.name,
+        href: category.href,
+        ...(children.length > 0 ? { children } : {}),
+      };
+    };
+    return roots.map(toItem);
   }
   if (href === animalCareHref) return animalCareItems;
   return null;
@@ -57,11 +95,300 @@ const navLinkBase =
 const iconActionBase =
   "inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-control transition-[background-color,border-color,color] duration-[180ms] ease-[cubic-bezier(0.22,1,0.36,1)] focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-forest";
 
-export function Header() {
+/**
+ * Keeps a flyout submenu inside the viewport: negative margins pull the
+ * panel back when it would cross the right or bottom edge. Measured from
+ * the anchor row (never shifted itself), so there is no feedback loop.
+ * Applied imperatively before paint — no state, no flash.
+ */
+function useSubmenuClamp(open: boolean) {
+  const ref = useRef<HTMLDivElement>(null);
+
+  useLayoutEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    if (!open) {
+      el.style.marginLeft = "";
+      el.style.marginTop = "";
+      return;
+    }
+    const measure = () => {
+      const anchor = el.parentElement; // the relative <li>
+      if (!anchor) return;
+      const anchorRect = anchor.getBoundingClientRect();
+      const overflowX =
+        anchorRect.right + el.offsetWidth - (window.innerWidth - 12);
+      const overflowY =
+        anchorRect.top + el.offsetHeight - (window.innerHeight - 12);
+      el.style.marginLeft = overflowX > 0 ? `${-overflowX}px` : "";
+      el.style.marginTop = overflowY > 0 ? `${-overflowY}px` : "";
+    };
+    measure();
+    window.addEventListener("resize", measure);
+    return () => window.removeEventListener("resize", measure);
+  }, [open]);
+
+  return ref;
+}
+
+/** Shared link styling for a category row inside a desktop panel. */
+const desktopItemLinkBase =
+  "min-w-0 flex-1 rounded-control px-3 py-2 text-[14px] font-medium transition-[color] duration-[180ms] ease-[cubic-bezier(0.22,1,0.36,1)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-forest/50";
+
+/**
+ * One category row in a desktop panel. Parents render a right-facing
+ * chevron and a flyout submenu (recursively, to any depth) positioned to
+ * the right of the row; leaves are plain links.
+ */
+function DesktopCategoryItem({
+  item,
+  depth,
+  submenuPath,
+  setSubmenuPath,
+  pathname,
+  onNavigate,
+}: {
+  item: DropdownItem;
+  depth: number;
+  submenuPath: string[];
+  setSubmenuPath: Dispatch<SetStateAction<string[]>>;
+  pathname: string;
+  onNavigate: () => void;
+}) {
+  const hasChildren = !!item.children?.length;
+  const open = hasChildren && submenuPath[depth] === item.href;
+  const submenuRef = useSubmenuClamp(open);
+  const active = pathname === item.href;
+
+  const setPath = (updater: (prev: string[]) => string[]) =>
+    setSubmenuPath(updater);
+  // Ensure this level is open without truncating deeper entries — focus
+  // events bubble up from nested rows and must not collapse them.
+  const openPath = () =>
+    setPath((prev) =>
+      prev[depth] === item.href
+        ? prev
+        : [...prev.slice(0, depth), item.href],
+    );
+  const closePath = () =>
+    setPath((prev) =>
+      prev[depth] === item.href ? prev.slice(0, depth) : prev,
+    );
+
+  return (
+    <li
+      className="relative"
+      onMouseEnter={hasChildren ? openPath : undefined}
+      onMouseLeave={hasChildren ? closePath : undefined}
+      onFocus={hasChildren ? openPath : undefined}
+      onBlur={
+        hasChildren
+          ? (event) => {
+              if (
+                !event.currentTarget.contains(
+                  event.relatedTarget as Node | null,
+                )
+              ) {
+                closePath();
+              }
+            }
+          : undefined
+      }
+    >
+      <div className="group/row flex w-full items-center rounded-control transition-[background-color,transform] duration-[180ms] ease-[cubic-bezier(0.22,1,0.36,1)] hover:translate-x-0.5 hover:bg-sage/50 focus-within:bg-sage/50">
+        <Link
+          href={item.href}
+          className={cn(
+            desktopItemLinkBase,
+            "group-hover/row:text-forest",
+            active
+              ? "text-forest underline decoration-forest/40 decoration-[1.5px] underline-offset-4"
+              : "text-charcoal/85",
+          )}
+          aria-current={active ? "page" : undefined}
+          onClick={onNavigate}
+        >
+          {item.name}
+        </Link>
+        {hasChildren ? (
+          <button
+            type="button"
+            aria-expanded={open}
+            aria-label={`${open ? "Hide" : "Show"} ${item.name} subcategories`}
+            // Keep the pointer-driven hover state authoritative: prevent
+            // the click from moving focus onto the button (which would
+            // re-open the submenu before the toggle runs).
+            onMouseDown={(event) => event.preventDefault()}
+            onClick={() => (open ? closePath() : openPath())}
+            className="mr-1.5 shrink-0 rounded-control p-1.5 text-charcoal/55 transition-[color,background-color] duration-[180ms] ease-[cubic-bezier(0.22,1,0.36,1)] hover:bg-white/70 hover:text-forest focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-forest/50"
+          >
+            <ChevronRight
+              className={cn(
+                "h-3.5 w-3.5 transition-transform duration-[200ms] ease-[cubic-bezier(0.22,1,0.36,1)]",
+                open && "rotate-90",
+              )}
+              aria-hidden="true"
+            />
+          </button>
+        ) : null}
+      </div>
+      {hasChildren ? (
+        <div
+          ref={submenuRef}
+          className={cn(
+            "absolute left-full top-0 z-50 pl-2 transition-[opacity,translate,visibility] duration-[200ms] ease-[cubic-bezier(0.22,1,0.36,1)]",
+            open
+              ? "visible translate-x-0 opacity-100"
+              : "invisible translate-x-1.5 opacity-0",
+          )}
+          role="group"
+          aria-label={`${item.name} subcategories`}
+        >
+          <ul className="w-56 rounded-card border border-border-subtle bg-white p-2 shadow-card">
+            {item.children!.map((child) => (
+              <DesktopCategoryItem
+                key={child.href}
+                item={child}
+                depth={depth + 1}
+                submenuPath={submenuPath}
+                setSubmenuPath={setSubmenuPath}
+                pathname={pathname}
+                onNavigate={onNavigate}
+              />
+            ))}
+          </ul>
+        </div>
+      ) : null}
+    </li>
+  );
+}
+
+/** Shared link styling for a category row in the mobile accordion. */
+const mobileItemLinkBase =
+  "min-w-0 rounded-control px-3 py-2 text-[14px] font-medium transition-colors duration-[180ms] ease-[cubic-bezier(0.22,1,0.36,1)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-forest/50";
+
+/**
+ * One category row in the mobile menu. Parents keep their navigation link
+ * and gain a separate chevron button that expands/collapses the children
+ * (accordion — tap only, no hover); deeper levels recurse.
+ */
+function MobileCategoryItem({
+  item,
+  depth,
+  expandedKeys,
+  toggleExpanded,
+  pathname,
+  onNavigate,
+}: {
+  item: DropdownItem;
+  depth: number;
+  expandedKeys: string[];
+  toggleExpanded: (key: string) => void;
+  pathname: string;
+  onNavigate: () => void;
+}) {
+  const hasChildren = !!item.children?.length;
+  const expanded = hasChildren && expandedKeys.includes(item.href);
+  const active = pathname === item.href;
+
+  if (!hasChildren) {
+    return (
+      <li>
+        <Link
+          href={item.href}
+          className={cn(
+            "block rounded-control px-3 py-2 text-[14px] font-medium transition-colors",
+            active
+              ? "text-forest underline decoration-forest/35 decoration-[1.5px] underline-offset-4"
+              : depth === 0
+                ? "text-charcoal/75"
+                : "text-charcoal/65",
+          )}
+          aria-current={active ? "page" : undefined}
+          onClick={onNavigate}
+        >
+          {item.name}
+        </Link>
+      </li>
+    );
+  }
+
+  return (
+    <li>
+      <div className="flex w-full items-center">
+        <Link
+          href={item.href}
+          className={cn(
+            mobileItemLinkBase,
+            "flex-1",
+            active
+              ? "text-forest underline decoration-forest/35 decoration-[1.5px] underline-offset-4"
+              : depth === 0
+                ? "text-charcoal/75"
+                : "text-charcoal/65",
+          )}
+          aria-current={active ? "page" : undefined}
+          onClick={onNavigate}
+        >
+          {item.name}
+        </Link>
+        <button
+          type="button"
+          aria-expanded={expanded}
+          aria-label={`${expanded ? "Hide" : "Show"} ${item.name} subcategories`}
+          onClick={() => toggleExpanded(item.href)}
+          className="shrink-0 rounded-control p-2 text-charcoal/60 transition-colors duration-[180ms] ease-[cubic-bezier(0.22,1,0.36,1)] hover:text-forest focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-forest/50"
+        >
+          <ChevronDown
+            className={cn(
+              "h-4 w-4 transition-transform duration-[200ms] ease-[cubic-bezier(0.22,1,0.36,1)]",
+              expanded && "rotate-180",
+            )}
+            aria-hidden="true"
+          />
+        </button>
+      </div>
+      {expanded ? (
+        <ul className="mb-1 ml-3 border-l border-border-subtle pl-2">
+          {item.children!.map((child) => (
+            <MobileCategoryItem
+              key={child.href}
+              item={child}
+              depth={depth + 1}
+              expandedKeys={expandedKeys}
+              toggleExpanded={toggleExpanded}
+              pathname={pathname}
+              onNavigate={onNavigate}
+            />
+          ))}
+        </ul>
+      ) : null}
+    </li>
+  );
+}
+
+export function Header({ categories }: { categories: PublicCategory[] }) {
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
+  /** Hierarchy of open flyout submenus, outermost first (by category href). */
+  const [submenuPath, setSubmenuPath] = useState<string[]>([]);
+  /** Mobile accordion: expanded parent-category hrefs (any depth). */
+  const [mobileExpanded, setMobileExpanded] = useState<string[]>([]);
   const pathname = usePathname();
+
+  const closeDropdown = useCallback(() => {
+    setOpenDropdown(null);
+    setSubmenuPath([]);
+  }, []);
+  const navigateAway = () => {
+    setMenuOpen(false);
+    closeDropdown();
+  };
+  const toggleMobileExpanded = (key: string) =>
+    setMobileExpanded((prev) =>
+      prev.includes(key) ? prev.filter((k) => k !== key) : [...prev, key],
+    );
 
   // Close all navigation surfaces when the route changes (link clicks,
   // browser back/forward, programmatic navigation). Render-phase
@@ -71,6 +398,8 @@ export function Header() {
   if (prevPathname !== pathname) {
     setPrevPathname(pathname);
     setOpenDropdown(null);
+    setSubmenuPath([]);
+    setMobileExpanded([]);
     setMenuOpen(false);
   }
 
@@ -92,11 +421,11 @@ export function Header() {
   useEffect(() => {
     if (!openDropdown) return;
     const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setOpenDropdown(null);
+      if (event.key === "Escape") closeDropdown();
     };
     document.addEventListener("keydown", onKeyDown);
     return () => document.removeEventListener("keydown", onKeyDown);
-  }, [openDropdown]);
+  }, [openDropdown, closeDropdown]);
 
   // Pointer down outside any dropdown closes it.
   useEffect(() => {
@@ -104,12 +433,12 @@ export function Header() {
     const onPointerDown = (event: PointerEvent) => {
       const target = event.target;
       if (target instanceof Element && !target.closest("[data-nav-dropdown]")) {
-        setOpenDropdown(null);
+        closeDropdown();
       }
     };
     document.addEventListener("pointerdown", onPointerDown);
     return () => document.removeEventListener("pointerdown", onPointerDown);
-  }, [openDropdown]);
+  }, [openDropdown, closeDropdown]);
 
   return (
     <header
@@ -140,7 +469,7 @@ export function Header() {
             className="hidden items-center gap-1 lg:flex"
           >
             {siteConfig.nav.map((item) => {
-              const dropdownItems = getDropdownItems(item.href);
+              const dropdownItems = getDropdownItems(item.href, categories);
               const active = isNavActive(pathname, item.href);
 
               if (dropdownItems) {
@@ -151,11 +480,7 @@ export function Header() {
                     className="relative"
                     data-nav-dropdown=""
                     onMouseEnter={() => setOpenDropdown(item.href)}
-                    onMouseLeave={() =>
-                      setOpenDropdown((cur) =>
-                        cur === item.href ? null : cur,
-                      )
-                    }
+                    onMouseLeave={() => closeDropdown()}
                     onFocus={() => setOpenDropdown(item.href)}
                     onBlur={(event) => {
                       if (
@@ -163,9 +488,7 @@ export function Header() {
                           event.relatedTarget as Node | null,
                         )
                       ) {
-                        setOpenDropdown((cur) =>
-                          cur === item.href ? null : cur,
-                        );
+                        closeDropdown();
                       }
                     }}
                   >
@@ -213,28 +536,15 @@ export function Header() {
                     >
                       <ul className="w-56 rounded-card border border-border-subtle bg-white p-2 shadow-card">
                         {dropdownItems.map((dropdownItem) => (
-                          <li key={dropdownItem.href}>
-                            <Link
-                              href={dropdownItem.href}
-                              className={cn(
-                                "block rounded-control px-3 py-2 text-[14px] font-medium transition-[color,background-color,translate] duration-[180ms] ease-[cubic-bezier(0.22,1,0.36,1)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-forest/50 hover:translate-x-0.5 hover:bg-sage/50 hover:text-forest",
-                                pathname === dropdownItem.href
-                                  ? "text-forest underline decoration-forest/40 decoration-[1.5px] underline-offset-4"
-                                  : "text-charcoal/85",
-                              )}
-                              aria-current={
-                                pathname === dropdownItem.href
-                                  ? "page"
-                                  : undefined
-                              }
-                              onClick={() => {
-                                setMenuOpen(false);
-                                setOpenDropdown(null);
-                              }}
-                            >
-                              {dropdownItem.name}
-                            </Link>
-                          </li>
+                          <DesktopCategoryItem
+                            key={dropdownItem.href}
+                            item={dropdownItem}
+                            depth={0}
+                            submenuPath={submenuPath}
+                            setSubmenuPath={setSubmenuPath}
+                            pathname={pathname}
+                            onNavigate={navigateAway}
+                          />
                         ))}
                       </ul>
                     </div>
@@ -316,7 +626,7 @@ export function Header() {
         <Container>
           <nav aria-label="Mobile" className="flex flex-col py-3">
             {siteConfig.nav.map((item) => {
-              const dropdownItems = getDropdownItems(item.href);
+              const dropdownItems = getDropdownItems(item.href, categories);
               const active = isNavActive(pathname, item.href);
               return (
                 <div
@@ -343,25 +653,15 @@ export function Header() {
                   {dropdownItems ? (
                     <ul className="mb-2 space-y-0.5 pl-4">
                       {dropdownItems.map((dropdownItem) => (
-                        <li key={dropdownItem.href}>
-                          <Link
-                            href={dropdownItem.href}
-                            className={cn(
-                              "block rounded-control px-3 py-2 text-[14px] font-medium",
-                              pathname === dropdownItem.href
-                                ? "text-forest underline decoration-forest/35 decoration-[1.5px] underline-offset-4"
-                                : "text-charcoal/75",
-                            )}
-                            aria-current={
-                              pathname === dropdownItem.href
-                                ? "page"
-                                : undefined
-                            }
-                            onClick={() => setMenuOpen(false)}
-                          >
-                            {dropdownItem.name}
-                          </Link>
-                        </li>
+                        <MobileCategoryItem
+                          key={dropdownItem.href}
+                          item={dropdownItem}
+                          depth={0}
+                          expandedKeys={mobileExpanded}
+                          toggleExpanded={toggleMobileExpanded}
+                          pathname={pathname}
+                          onNavigate={navigateAway}
+                        />
                       ))}
                     </ul>
                   ) : null}

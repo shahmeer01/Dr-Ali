@@ -9,27 +9,30 @@ export type BreadcrumbItem = {
 export function Breadcrumbs({ items }: { items: BreadcrumbItem[] }) {
   return (
     <nav aria-label="Breadcrumb" className="py-4">
-      <ol className="flex flex-wrap items-center gap-1.5 text-[13px] text-muted">
+      <ol className="flex flex-wrap items-center gap-2 text-[13px] text-muted">
         <li>
           <Link
             href="/"
-            className="transition-colors duration-[180ms] hover:text-forest"
+            className="transition-colors duration-[180ms] hover:text-forest hover:underline underline-offset-2"
           >
             Home
           </Link>
         </li>
         {items.map((item, i) => (
-          <li key={`${item.label}-${i}`} className="flex items-center gap-1.5">
-            <ChevronRight className="h-3.5 w-3.5" aria-hidden="true" />
+          <li key={`${item.label}-${i}`} className="flex items-center gap-2">
+            <ChevronRight
+              className="h-3.5 w-3.5 text-muted/60"
+              aria-hidden="true"
+            />
             {item.href ? (
               <Link
                 href={item.href}
-                className="transition-colors duration-[180ms] hover:text-forest"
+                className="transition-colors duration-[180ms] hover:text-forest hover:underline underline-offset-2"
               >
                 {item.label}
               </Link>
             ) : (
-              <span aria-current="page" className="text-charcoal">
+              <span aria-current="page" className="font-medium text-charcoal">
                 {item.label}
               </span>
             )}
